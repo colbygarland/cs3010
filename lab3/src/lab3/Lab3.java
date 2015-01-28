@@ -11,6 +11,7 @@ import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.effect.DropShadow;
@@ -24,6 +25,8 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.util.Duration;
 
@@ -157,8 +160,8 @@ public class Lab3 extends Application {
 
         BorderPane borderPane = new BorderPane();
 
-        borderPane.setLeft(btnPrev);
-        borderPane.setRight(btnNext);
+        //borderPane.setLeft(btnPrev);
+        //borderPane.setRight(btnNext);
 
         Image begin = new Image("file:" + pictures[0]);
         imgView.setImage(begin);
@@ -208,7 +211,23 @@ public class Lab3 extends Application {
                 System.exit(1);
             }
         });
-
+        
+        VBox vbox = new VBox();
+        vbox.getChildren().add(btnPrev);
+        
+        vbox.setAlignment(Pos.CENTER);
+        btnPrev.setAlignment(Pos.CENTER);
+        borderPane.setLeft(vbox);
+        
+        VBox vbox2 = new VBox();
+        vbox2.getChildren().add(btnNext);
+        vbox2.setAlignment(Pos.CENTER);
+        btnNext.setAlignment(Pos.CENTER);
+        borderPane.setRight(vbox2);
+        
+        HBox hboxLeft = new HBox();
+        HBox hboxRight = new HBox();
+       
         Scene scene = new Scene(borderPane, 800, 600);
 
         primaryStage.setTitle("Image Viewer");
