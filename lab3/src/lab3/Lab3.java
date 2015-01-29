@@ -221,9 +221,7 @@ public class Lab3 extends Application {
         btnNext.setAlignment(Pos.CENTER);
         borderPane.setRight(vbox2);
         
-        Rectangle rectLeft = new Rectangle(200,100);
-        rectLeft.relocate(0, 0);
-        rectLeft.setFill(Color.LIGHTGREY);
+        
         
         Text leftText = new Text("Previous Picture");
         leftText.relocate(10,40);
@@ -233,6 +231,15 @@ public class Lab3 extends Application {
         leftText.setEffect(is);
         leftText.setFill(Color.LIGHTGREY);
         leftText.setFont(Font.font(null, FontWeight.BOLD, 20));
+        
+        InnerShadow us = new InnerShadow();
+        us.setOffsetX(-4.0f);
+        us.setOffsetY(4.0f);
+        
+        Rectangle rectLeft = new Rectangle(200,100);
+        rectLeft.relocate(0, 0);
+        rectLeft.setFill(Color.LIGHTGREY);
+        rectLeft.setEffect(us);
         
         Text rightText = new Text("Next Picture");
         rightText.relocate(650,40);
@@ -252,6 +259,7 @@ public class Lab3 extends Application {
         Rectangle rectRight = new Rectangle(200,100);
         rectRight.relocate(600,0);
         rectRight.setFill(Color.LIGHTGREY);
+        rectRight.setEffect(is);
         
         
         rectRight.setOnMouseEntered(e -> {
@@ -265,8 +273,6 @@ public class Lab3 extends Application {
         
         Pane pane = new Pane();
         pane.getChildren().addAll(rectRight, rectLeft, leftText, rightText);
-        
-        
         
         borderPane.setBottom(pane);
        
