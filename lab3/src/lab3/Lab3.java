@@ -28,6 +28,7 @@ import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Rectangle;
 import javafx.util.Duration;
 
 /**
@@ -36,12 +37,7 @@ import javafx.util.Duration;
  */
 public class Lab3 extends Application {
 
-    int index = 0;
-
-    @Override
-    public void start(Stage primaryStage) {
-
-        class JPGFilter implements FileFilter {
+    class JPGFilter implements FileFilter {
 
             @Override
             public boolean accept(File pathname) {
@@ -57,20 +53,76 @@ public class Lab3 extends Application {
                         || name.toLowerCase().endsWith(".gif");
             }
         }
+    
+    int index = 0;
+    File f = new File(".");
+    File[] pictures = f.listFiles(new JPGFilter());
+    int NUMBER_OF_PICTURES = pictures.length;
 
-        File f = new File(".");
-        File[] pictures = f.listFiles(new JPGFilter());
-        int NUMBER_OF_PICTURES = pictures.length;
+    // image stuff here
+    ImageView imgView = new ImageView();
+    //imgView.setFitHeight(700);
+    //imgView.setFitWidth(500);
+    //imgView.setPreserveRatio(true);
 
-        // image stuff here
-        ImageView imgView = new ImageView();
-        imgView.setFitHeight(700);
-        imgView.setFitWidth(500);
-        imgView.setPreserveRatio(true);
+    // text stuff for bottom corner
+    Text text = new Text();
+    Font font = new Font(20);
+    
+    
+    
+    public void previous(){
+         if (index > 0) {
+                    index--;
+                } else {
+                    index = NUMBER_OF_PICTURES - 1;
+                }
+                Image img = new Image("file:" + pictures[index]);
+                imgView.setFitHeight(700);
+                imgView.setFitWidth(500);
+                imgView.setPreserveRatio(true);
+                imgView.setImage(img);
+                String str = pictures[index].getName();
+                text.setText(str);
 
-        // text stuff for bottom corner
-        Text text = new Text();
-        Font font = new Font(20);
+                FadeTransition ft = new FadeTransition(Duration.millis(500), imgView);
+                ft.setFromValue(0.3);
+                ft.setToValue(1.0);
+                ft.setCycleCount(1);
+                ft.setAutoReverse(true);
+                ft.play();
+        
+    }
+    
+    public void next(){
+        if (index < NUMBER_OF_PICTURES - 1) {
+                    index++;
+                } else {
+                    index = 0;
+                }
+                Image img = new Image("file:" + pictures[index]);
+                imgView.setFitHeight(700);
+                imgView.setFitWidth(500);
+                imgView.setPreserveRatio(true);
+                imgView.setImage(img);
+                String str = pictures[index].getName();
+                text.setText(str);
+
+                FadeTransition ft = new FadeTransition(Duration.millis(500), imgView);
+                ft.setFromValue(0.3);
+                ft.setToValue(1.0);
+                ft.setCycleCount(1);
+                ft.setAutoReverse(true);
+                ft.play();
+        
+    }
+
+    @Override
+    public void start(Stage primaryStage) {
+
+        
+
+       
 
 // BUTTON HANDLING 
         // previous button
@@ -82,22 +134,7 @@ public class Lab3 extends Application {
 
             @Override
             public void handle(ActionEvent event) {
-                if (index > 0) {
-                    index--;
-                } else {
-                    index = NUMBER_OF_PICTURES - 1;
-                }
-                Image img = new Image("file:" + pictures[index]);
-                imgView.setImage(img);
-                String str = pictures[index].getName();
-                text.setText(str);
-
-                FadeTransition ft = new FadeTransition(Duration.millis(500), imgView);
-                ft.setFromValue(0.3);
-                ft.setToValue(1.0);
-                ft.setCycleCount(1);
-                ft.setAutoReverse(true);
-                ft.play();
+                previous();
             }
         });
 
@@ -124,22 +161,7 @@ public class Lab3 extends Application {
 
             @Override
             public void handle(ActionEvent event) {
-                if (index < NUMBER_OF_PICTURES - 1) {
-                    index++;
-                } else {
-                    index = 0;
-                }
-                Image img = new Image("file:" + pictures[index]);
-                imgView.setImage(img);
-                String str = pictures[index].getName();
-                text.setText(str);
-
-                FadeTransition ft = new FadeTransition(Duration.millis(500), imgView);
-                ft.setFromValue(0.3);
-                ft.setToValue(1.0);
-                ft.setCycleCount(1);
-                ft.setAutoReverse(true);
-                ft.play();
+                next();
             }
         });
 
@@ -160,52 +182,22 @@ public class Lab3 extends Application {
 
         BorderPane borderPane = new BorderPane();
 
-        //borderPane.setLeft(btnPrev);
-        //borderPane.setRight(btnNext);
-
         Image begin = new Image("file:" + pictures[0]);
         imgView.setImage(begin);
+        imgView.setFitHeight(700);
+        imgView.setFitWidth(500);
+        imgView.setPreserveRatio(true);
         borderPane.setCenter(imgView);
         String str = pictures[0].getName();
         text.setText(str);
-        borderPane.setBottom(text);
+        borderPane.setTop(text);
 
         borderPane.setOnKeyPressed((KeyEvent ke) -> {
             if (ke.getCode() == KeyCode.RIGHT || ke.getCode() == KeyCode.D) {
-                if (index < NUMBER_OF_PICTURES - 1) {
-                    index++;
-                } else {
-                    index = 0;
-                }
-                Image img = new Image("file:" + pictures[index]);
-                imgView.setImage(img);
-                String str1 = pictures[index].getName();
-                text.setText(str1);
-
-                FadeTransition ft = new FadeTransition(Duration.millis(500), imgView);
-                ft.setFromValue(0.3);
-                ft.setToValue(1.0);
-                ft.setCycleCount(1);
-                ft.setAutoReverse(true);
-                ft.play();
+                next();
             }
             if (ke.getCode() == KeyCode.LEFT || ke.getCode() == KeyCode.S) {
-                if (index > 0) {
-                    index--;
-                } else {
-                    index = NUMBER_OF_PICTURES - 1;
-                }
-                Image img = new Image("file:" + pictures[index]);
-                imgView.setImage(img);
-                String str2 = pictures[index].getName();
-                text.setText(str2);
-
-                FadeTransition ft = new FadeTransition(Duration.millis(500), imgView);
-                ft.setFromValue(0.3);
-                ft.setToValue(1.0);
-                ft.setCycleCount(1);
-                ft.setAutoReverse(true);
-                ft.play();
+                previous();
             }
             if (ke.getCode() == KeyCode.ESCAPE) {
                 System.exit(1);
@@ -227,6 +219,32 @@ public class Lab3 extends Application {
         
         HBox hboxLeft = new HBox();
         HBox hboxRight = new HBox();
+        
+        Rectangle rectLeft = new Rectangle(200,100);
+        rectLeft.setFill(Color.DARKGREY);
+       
+        hboxLeft.setAlignment(Pos.BOTTOM_LEFT);
+        
+        Text leftText = new Text("Swipe Here For Previous Picture");
+        
+        hboxLeft.getChildren().addAll(rectLeft,leftText);
+        
+        rectLeft.setOnMouseEntered(e -> {
+             previous();
+        });
+        
+        Rectangle rectRight = new Rectangle(200,100);
+        rectRight.setFill(Color.DARKGREY);
+        
+        hboxRight.setAlignment(Pos.BOTTOM_RIGHT);
+        hboxRight.getChildren().add(rectRight);
+        
+        rectRight.setOnMouseEntered(e -> {
+               next();
+        });
+        
+        borderPane.setBottom(hboxLeft);
+        borderPane.setBottom(hboxRight);
        
         Scene scene = new Scene(borderPane, 800, 600);
 
