@@ -69,7 +69,7 @@ public class Lab3 extends Application {
     //imgView.setFitWidth(500);
     //imgView.setPreserveRatio(true);
 
-    // text stuff for bottom corner
+    // text stuff for top corner
     Text text = new Text();
     Font font = new Font(20);
     
