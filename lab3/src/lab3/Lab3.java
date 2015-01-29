@@ -15,6 +15,8 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.effect.DropShadow;
+import javafx.scene.effect.InnerShadow;
+import javafx.scene.effect.Reflection;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
@@ -30,6 +32,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
+import javafx.scene.text.FontWeight;
 import javafx.util.Duration;
 
 /**
@@ -223,12 +226,27 @@ public class Lab3 extends Application {
         rectLeft.setFill(Color.LIGHTGREY);
         
         Text leftText = new Text("Previous Picture");
-        leftText.relocate(0,0);
+        leftText.relocate(10,40);
+        InnerShadow is = new InnerShadow();
+        is.setOffsetX(4.0f);
+        is.setOffsetY(4.0f);
+        leftText.setEffect(is);
+        leftText.setFill(Color.LIGHTGREY);
+        leftText.setFont(Font.font(null, FontWeight.BOLD, 20));
+        
         Text rightText = new Text("Next Picture");
-        rightText.relocate(600,0);
+        rightText.relocate(650,40);
+        rightText.setEffect(is);
+        rightText.setFill(Color.LIGHTGREY);
+        rightText.setFont(Font.font(null, FontWeight.BOLD, 20));
         
         rectLeft.setOnMouseEntered(e -> {
-             previous();
+            rectLeft.setFill(Color.DARKGREY);
+            previous();
+        });
+        
+         rectLeft.setOnMouseExited(e -> {
+               rectLeft.setFill(Color.LIGHTGREY);
         });
         
         Rectangle rectRight = new Rectangle(200,100);
@@ -237,7 +255,12 @@ public class Lab3 extends Application {
         
         
         rectRight.setOnMouseEntered(e -> {
+               rectRight.setFill(Color.DARKGREY);
                next();
+        });
+        
+        rectRight.setOnMouseExited(e -> {
+               rectRight.setFill(Color.LIGHTGREY);
         });
         
         Pane pane = new Pane();
@@ -252,6 +275,7 @@ public class Lab3 extends Application {
         primaryStage.setTitle("Image Viewer");
         primaryStage.setScene(scene);
         primaryStage.setResizable(false);
+        primaryStage.getIcons().add(new Image("file:" + pictures[0]));
         primaryStage.show();
     }
 
