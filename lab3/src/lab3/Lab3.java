@@ -26,6 +26,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundImage;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -217,39 +218,40 @@ public class Lab3 extends Application {
         btnNext.setAlignment(Pos.CENTER);
         borderPane.setRight(vbox2);
         
-        HBox hboxLeft = new HBox();
-        HBox hboxRight = new HBox();
-        
         Rectangle rectLeft = new Rectangle(200,100);
-        rectLeft.setFill(Color.DARKGREY);
-       
-        hboxLeft.setAlignment(Pos.BOTTOM_LEFT);
+        rectLeft.relocate(0, 0);
+        rectLeft.setFill(Color.LIGHTGREY);
         
-        Text leftText = new Text("Swipe Here For Previous Picture");
-        
-        hboxLeft.getChildren().addAll(rectLeft,leftText);
+        Text leftText = new Text("Previous Picture");
+        leftText.relocate(0,0);
+        Text rightText = new Text("Next Picture");
+        rightText.relocate(600,0);
         
         rectLeft.setOnMouseEntered(e -> {
              previous();
         });
         
         Rectangle rectRight = new Rectangle(200,100);
-        rectRight.setFill(Color.DARKGREY);
+        rectRight.relocate(600,0);
+        rectRight.setFill(Color.LIGHTGREY);
         
-        hboxRight.setAlignment(Pos.BOTTOM_RIGHT);
-        hboxRight.getChildren().add(rectRight);
         
         rectRight.setOnMouseEntered(e -> {
                next();
         });
         
-        borderPane.setBottom(hboxLeft);
-        borderPane.setBottom(hboxRight);
+        Pane pane = new Pane();
+        pane.getChildren().addAll(rectRight, rectLeft, leftText, rightText);
+        
+        
+        
+        borderPane.setBottom(pane);
        
         Scene scene = new Scene(borderPane, 800, 600);
 
         primaryStage.setTitle("Image Viewer");
         primaryStage.setScene(scene);
+        primaryStage.setResizable(false);
         primaryStage.show();
     }
 
