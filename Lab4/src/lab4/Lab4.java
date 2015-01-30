@@ -11,9 +11,15 @@ import javafx.beans.Observable;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
@@ -84,9 +90,11 @@ class functionPane extends Pane {
             txtPie.setFont(font);
             txt_Pie.setFont(font);
             
+            
             this.getChildren().addAll(xAxis,yAxis,rect, txt5, txt_5, 
                     txtPie, txt_Pie);
-            
+            this.setStyle("-fx-background-color: lightgreen;");
+                    
             this.widthProperty().addListener(e ->{
                 xAxis.setEndX(this.getWidth());
                 xAxis.setTranslateY(this.getHeight() / 2);
@@ -129,6 +137,8 @@ class functionPane extends Pane {
                 txtPie.setTranslateY(this.getHeight() / 2 + 20);
             });
             
+            makeCurve();
+            
         }
         
         // setters for the properties, pass in a Double
@@ -159,7 +169,32 @@ class functionPane extends Pane {
             return d.get();
         }
         
+        private void makeCurve(){
+            this.getChildren().remove(curve);
+            curve = new Polyline();
+            
+        }
         
+        private void compute(){
+            /**
+             * 
+             *  y = asin(bx + c)+d
+             * 
+             */
+            
+            for (int i = 0; i < 100; i++){
+                
+                double x=0,y=0;
+                y = a.doubleValue() * Math.sin(b.doubleValue() * x + c.doubleValue())
+                        + d.doubleValue();
+                
+                
+                curve.getPoints().add(x);
+                curve.getPoints().add(y);
+            }
+            
+            
+        }
         
         
 }
@@ -175,6 +210,28 @@ public class Lab4 extends Application {
         fpane.init();
         
         root.setCenter(fpane);
+        
+        HBox hbox = new HBox();
+        
+        Text txt1 = new Text("Enter a:");
+        TextField txtbox1 = new TextField();
+        txtbox1.setPrefColumnCount(5);
+        Text txt2 = new Text("Enter b:");
+        TextField txtbox2 = new TextField();
+        txtbox2.setPrefColumnCount(5);
+        Text txt3 = new Text("Enter c:");
+        TextField txtbox3 = new TextField();
+        txtbox3.setPrefColumnCount(5);
+        Text txt4 = new Text("Enter d:");
+        TextField txtbox4 = new TextField();
+        txtbox4.setPrefColumnCount(5);
+        
+        
+        
+        hbox.getChildren().addAll(txt1, txtbox1, txt2, txtbox2
+        , txt3, txtbox3, txt4, txtbox4);
+        
+        root.setBottom(hbox);
         
         Scene scene = new Scene(root, 800, 600);
         
