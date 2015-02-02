@@ -6,26 +6,14 @@
 package lab4;
 
 import javafx.application.Application;
-import javafx.beans.InvalidationListener;
-import javafx.beans.Observable;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
 import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.CornerRadii;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
 import javafx.scene.shape.Polyline;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
@@ -47,8 +35,6 @@ class functionPane extends Pane {
         // for the scale
         private double xMax,xMin, yMax, yMin;
         
-        Rectangle rect;
-        
         // default constructor
         public functionPane() {
             a = new SimpleDoubleProperty(1.0);
@@ -67,12 +53,7 @@ class functionPane extends Pane {
             xAxis.setStrokeWidth(5.0);
             yAxis.setStrokeWidth(5.0);
             
-            
-            rect = new Rectangle();
-            rect.setHeight(this.getHeight());
-            rect.setWidth(this.getWidth());
-            rect.setFill(Color.LIGHTGREEN);
-            rect.setOpacity(0.2);
+            curve = new Polyline();
             
         }
         
@@ -90,16 +71,18 @@ class functionPane extends Pane {
             txtPie.setFont(font);
             txt_Pie.setFont(font);
             
+            compute();
+            curve.setScaleX(10);
+            curve.setScaleY(15);
+            curve.setTranslateY(300);
             
-            this.getChildren().addAll(xAxis,yAxis,rect, txt5, txt_5, 
-                    txtPie, txt_Pie);
+            this.getChildren().addAll(xAxis,yAxis, txt5, txt_5, 
+                    txtPie, txt_Pie, curve);
             this.setStyle("-fx-background-color: lightgreen;");
                     
             this.widthProperty().addListener(e ->{
                 xAxis.setEndX(this.getWidth());
                 xAxis.setTranslateY(this.getHeight() / 2);
-                xAxis.setTranslateY(this.getHeight() / 2);
-                xAxis.setTranslateZ(1.0);
                 
                 txt5.setTranslateX(this.getWidth() / 2 + 5);
                 txt5.setTranslateY(20);
@@ -113,18 +96,17 @@ class functionPane extends Pane {
                 
                 yAxis.setEndY(this.getHeight());
                 yAxis.setTranslateX(this.getWidth() / 2);
-                yAxis.setTranslateZ(1.0);
+                
+                curve.setTranslateX(this.getWidth() / 2);
+                curve.setTranslateY(this.getHeight() / 2);
                
             });
             this.heightProperty().addListener(e ->{
                 yAxis.setEndY(this.getHeight());
                 yAxis.setTranslateX(this.getWidth() / 2);
-                yAxis.setTranslateZ(1.0);
                 
                 xAxis.setEndX(this.getWidth());
                 xAxis.setTranslateY(this.getHeight() / 2);
-                xAxis.setTranslateY(this.getHeight() / 2);
-                xAxis.setTranslateZ(1.0);
                 
                 txt5.setTranslateX(this.getWidth() / 2 + 5);
                 txt5.setTranslateY(20);
@@ -135,9 +117,12 @@ class functionPane extends Pane {
                 txt_Pie.setTranslateY(this.getHeight() / 2 + 20);
                 txtPie.setTranslateX(this.getWidth() - 20);
                 txtPie.setTranslateY(this.getHeight() / 2 + 20);
+                
+                curve.setTranslateX(this.getWidth() / 2);
+                curve.setTranslateY(this.getHeight() / 2);
             });
             
-            makeCurve();
+            //makeCurve();
             
         }
         
@@ -181,19 +166,18 @@ class functionPane extends Pane {
              *  y = asin(bx + c)+d
              * 
              */
+            double x = 0.0,y = 0.0;
             
             for (int i = 0; i < 100; i++){
                 
-                double x=0,y=0;
                 y = a.doubleValue() * Math.sin(b.doubleValue() * x + c.doubleValue())
                         + d.doubleValue();
                 
-                
                 curve.getPoints().add(x);
                 curve.getPoints().add(y);
+                
+                x = x + 0.5;
             }
-            
-            
         }
         
         
