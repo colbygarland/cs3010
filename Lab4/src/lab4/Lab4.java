@@ -7,7 +7,9 @@ package lab4;
 
 import javafx.application.Application;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.event.ActionEvent;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -60,6 +62,7 @@ class functionPane extends Pane {
         // draws the axis
         public void init(){
             
+        // Text initiating stuff
             Text txt5 = new Text("5");
             Text txt_5 = new Text("-5");
             Text txtPie = new Text("\u03c0");
@@ -71,6 +74,7 @@ class functionPane extends Pane {
             txtPie.setFont(font);
             txt_Pie.setFont(font);
             
+        // Curve initiation
             compute();
             curve.setScaleX(10);
             curve.setScaleY(15);
@@ -122,22 +126,24 @@ class functionPane extends Pane {
                 curve.setTranslateY(this.getHeight() / 2);
             });
             
-            //makeCurve();
-            
         }
         
         // setters for the properties, pass in a Double
         public void setA(Double d){
             a.set(d);
+            remakeCurve();
         }
         public void setB(Double d){
             b.set(d);
+            remakeCurve();
         }
         public void setC(Double d){
             c.set(d);
+            remakeCurve();
         }
         public void setD(Double a){
             d.set(a);
+            remakeCurve();
         }
         
         // getters for the properties, returns Double
@@ -154,12 +160,15 @@ class functionPane extends Pane {
             return d.get();
         }
         
-        private void makeCurve(){
+        // deletes the old curve, and recomputes the new curve
+        private void remakeCurve(){
             this.getChildren().remove(curve);
             curve = new Polyline();
-            
+            compute();
+            this.getChildren().add(curve);
         }
         
+        // computes the points using the a,b,c,d
         private void compute(){
             /**
              * 
@@ -176,7 +185,7 @@ class functionPane extends Pane {
                 curve.getPoints().add(x);
                 curve.getPoints().add(y);
                 
-                x = x + 0.5;
+                x++;
             }
         }
         
@@ -210,16 +219,48 @@ public class Lab4 extends Application {
         TextField txtbox4 = new TextField();
         txtbox4.setPrefColumnCount(5);
         
+        // A
+        txtbox1.setOnAction((ActionEvent e) ->{
+            fpane.setA(Double.parseDouble(txtbox1.getText()));
+            txtbox1.clear();
+        });
         
+        // B
+        txtbox2.setOnAction((ActionEvent e) ->{
+            fpane.setB(Double.parseDouble(txtbox2.getText()));
+            txtbox2.clear();
+        });
+        
+        // C
+        txtbox3.setOnAction((ActionEvent e) ->{
+            fpane.setC(Double.parseDouble(txtbox3.getText()));
+            txtbox3.clear();
+        });
+        
+        // D
+        txtbox4.setOnAction((ActionEvent e) ->{
+            fpane.setD(Double.parseDouble(txtbox4.getText()));
+            txtbox4.clear();
+        });
+        
+        // Reset button
+        Button resetBtn = new Button("Reset");
+        resetBtn.setOnAction(e -> {
+            fpane.setA(1.0);
+            fpane.setB(1.0);
+            fpane.setC(0.0);
+            fpane.setD(0.0);
+        });
+      
         
         hbox.getChildren().addAll(txt1, txtbox1, txt2, txtbox2
-        , txt3, txtbox3, txt4, txtbox4);
+        , txt3, txtbox3, txt4, txtbox4, resetBtn);
         
         root.setBottom(hbox);
         
         Scene scene = new Scene(root, 800, 600);
         
-        primaryStage.setTitle("Sin Curve");
+        primaryStage.setTitle("Sine Curve");
         primaryStage.setScene(scene);
         primaryStage.show();
     }
