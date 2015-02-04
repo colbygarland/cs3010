@@ -37,6 +37,10 @@ class functionPane extends Pane {
         // for the scale
         private double xMax,xMin, yMax, yMin;
         
+        // for the x scale of the curve
+        private double xScaler;
+        private double yScaler;
+        
         // default constructor
         public functionPane() {
             a = new SimpleDoubleProperty(1.0);
@@ -57,6 +61,9 @@ class functionPane extends Pane {
             
             curve = new Polyline();
             
+            xScaler = 100.0;
+            yScaler = 80.0;
+            
         }
         
         // draws the axis
@@ -76,9 +83,8 @@ class functionPane extends Pane {
             
         // Curve initiation
             compute();
-            curve.setScaleX(10);
-            curve.setScaleY(15);
-            curve.setTranslateY(300);
+            xScaler = this.getWidth() / 6.25;
+            curve.setTranslateY(this.getHeight() / 2);
             
             this.getChildren().addAll(xAxis,yAxis, txt5, txt_5, 
                     txtPie, txt_Pie, curve);
@@ -101,7 +107,8 @@ class functionPane extends Pane {
                 yAxis.setEndY(this.getHeight());
                 yAxis.setTranslateX(this.getWidth() / 2);
                 
-                curve.setTranslateX(this.getWidth() / 2);
+                xScaler = this.getWidth() / 6.25;
+                remakeCurve();
                 curve.setTranslateY(this.getHeight() / 2);
                
             });
@@ -122,7 +129,6 @@ class functionPane extends Pane {
                 txtPie.setTranslateX(this.getWidth() - 20);
                 txtPie.setTranslateY(this.getHeight() / 2 + 20);
                 
-                curve.setTranslateX(this.getWidth() / 2);
                 curve.setTranslateY(this.getHeight() / 2);
             });
             
@@ -165,6 +171,8 @@ class functionPane extends Pane {
             this.getChildren().remove(curve);
             curve = new Polyline();
             compute();
+            xScaler = this.getWidth() / 6.25;
+            curve.setTranslateY(this.getHeight() / 2);
             this.getChildren().add(curve);
         }
         
@@ -177,16 +185,23 @@ class functionPane extends Pane {
              */
             double x = 0.0,y = 0.0;
             
-            for (int i = 0; i < 100; i++){
+            for (int i = 0; i < 26; i++){
                 
                 y = a.doubleValue() * Math.sin(b.doubleValue() * x + c.doubleValue())
                         + d.doubleValue();
                 
-                curve.getPoints().add(x);
-                curve.getPoints().add(y);
+                curve.getPoints().add(x*xScaler);
+                curve.getPoints().add(y*yScaler);
                 
-                x++;
+                x+=0.25;
             }
+        }
+        
+        // animation thing
+        private void animate(){
+            
+            
+            
         }
         
         
@@ -251,10 +266,18 @@ public class Lab4 extends Application {
             fpane.setC(0.0);
             fpane.setD(0.0);
         });
+        
+        // Animate button
+        Button animateBtn = new Button("Animate");
+        animateBtn.setOnAction(e -> {
+            
+        });
       
         
         hbox.getChildren().addAll(txt1, txtbox1, txt2, txtbox2
-        , txt3, txtbox3, txt4, txtbox4, resetBtn);
+        , txt3, txtbox3, txt4, txtbox4, resetBtn, animateBtn);
+        
+        hbox.setSpacing(15);
         
         root.setBottom(hbox);
         
