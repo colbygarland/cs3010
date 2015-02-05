@@ -5,6 +5,8 @@
  */
 package lab4;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.event.ActionEvent;
@@ -19,6 +21,7 @@ import javafx.scene.shape.Polyline;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 /**
  *
@@ -199,8 +202,14 @@ class functionPane extends Pane {
         
         // animation thing
         private void animate(){
+            /**
+             *   a varies from 0 to 5  
+             *   b varies from 1 to 10
+             *   goes on for 5 seconds
+             *   disables text fields while running
+             */
             
-            
+      
             
         }
         
@@ -236,25 +245,89 @@ public class Lab4 extends Application {
         
         // A
         txtbox1.setOnAction((ActionEvent e) ->{
-            fpane.setA(Double.parseDouble(txtbox1.getText()));
+            
+            // constrain A from 0-5
+            try {
+                Double a = Double.parseDouble(txtbox1.getText());
+                
+                if (a.doubleValue() >= 0 && a.doubleValue() <=5) 
+                    fpane.setA(a);
+                else {
+                    System.out.println("Enter a value from 0-5");
+                    fpane.setA(1.0);
+                    fpane.setB(1.0);
+                    fpane.setC(0.0);
+                    fpane.setD(0.0);
+                }
+            } catch(NumberFormatException incorrect){
+                System.out.println("Enter a number from 0-5");
+            }
             txtbox1.clear();
         });
         
         // B
         txtbox2.setOnAction((ActionEvent e) ->{
-            fpane.setB(Double.parseDouble(txtbox2.getText()));
+            
+            // constrain B from 0-10
+            try {
+                Double b = Double.parseDouble(txtbox2.getText());
+                
+                if (b.doubleValue() >= 0 && b.doubleValue() <=10) 
+                    fpane.setB(b);
+                else {
+                    System.out.println("Enter a value from 0-10");
+                    fpane.setA(1.0);
+                    fpane.setB(1.0);
+                    fpane.setC(0.0);
+                    fpane.setD(0.0);
+                }
+            } catch(NumberFormatException incorrect){
+                System.out.println("Enter a number from 0-10");
+            }
             txtbox2.clear();
         });
         
         // C
         txtbox3.setOnAction((ActionEvent e) ->{
-            fpane.setC(Double.parseDouble(txtbox3.getText()));
+            
+           // constrain C from -pie to pie
+            try {
+                Double c = Double.parseDouble(txtbox3.getText());
+                
+                if (c.doubleValue() >= -Math.PI && c.doubleValue() <= Math.PI) 
+                    fpane.setC(-c);
+                else {
+                    System.out.println("Enter a value from -3.14 to 3.14");
+                    fpane.setA(1.0);
+                    fpane.setB(1.0);
+                    fpane.setC(0.0);
+                    fpane.setD(0.0);
+                }
+            } catch(NumberFormatException incorrect){
+                System.out.println("Enter a number from -3.14 to 3.14");
+            }
             txtbox3.clear();
         });
         
         // D
         txtbox4.setOnAction((ActionEvent e) ->{
-            fpane.setD(Double.parseDouble(txtbox4.getText()));
+            
+           // constrain D from -5 to 5
+            try {
+                Double d = Double.parseDouble(txtbox4.getText());
+                
+                if (d.doubleValue() >= -5 && d.doubleValue() <= 5) 
+                    fpane.setD(-d);
+                else {
+                    System.out.println("Enter a value from -5 to 5");
+                    fpane.setA(1.0);
+                    fpane.setB(1.0);
+                    fpane.setC(0.0);
+                    fpane.setD(0.0);
+                }
+            } catch(NumberFormatException incorrect){
+                System.out.println("Enter a number from -5 to 5");
+            }
             txtbox4.clear();
         });
         
