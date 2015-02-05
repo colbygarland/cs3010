@@ -6,10 +6,12 @@
 package lab4;
 
 import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
@@ -37,9 +39,6 @@ class functionPane extends Pane {
         private Line xAxis;
         private Line yAxis;
         
-        // for the scale
-        private double xMax,xMin, yMax, yMin;
-        
         // for the x scale of the curve
         private double xScaler;
         private double yScaler;
@@ -50,11 +49,6 @@ class functionPane extends Pane {
             b = new SimpleDoubleProperty(1.0);
             c = new SimpleDoubleProperty(0.0);
             d = new SimpleDoubleProperty(0.0);
-            
-            xMax = 5;
-            xMin = -5;
-            yMax = 3.14;
-            yMin = -3.14;
             
             xAxis = new Line();
             yAxis = new Line();
@@ -135,6 +129,19 @@ class functionPane extends Pane {
                 curve.setTranslateY(this.getHeight() / 2);
             });
             
+            a.addListener(e -> {
+                remakeCurve();
+            });
+            b.addListener(e -> {
+                remakeCurve();
+            });
+            c.addListener(e -> {
+                remakeCurve();
+            });
+            d.addListener(e -> {
+                remakeCurve();
+            });
+            
         }
         
         // setters for the properties, pass in a Double
@@ -147,27 +154,29 @@ class functionPane extends Pane {
             remakeCurve();
         }
         public void setC(Double d){
-            c.set(d);
+            c.set(-d);
             remakeCurve();
         }
         public void setD(Double a){
-            d.set(a);
+            d.set(-a);
             remakeCurve();
         }
         
         // getters for the properties, returns Double
-        public Double getA(){
-            return a.get();
+        public SimpleDoubleProperty getA(){
+            return a;
         }
-        public Double getB(){
-            return b.get();
+        public SimpleDoubleProperty getB(){
+            return b;
         }
-        public Double getC(){
-            return c.get();
+        public SimpleDoubleProperty getC(){
+            return c;
         }
-        public Double getD(){
-            return d.get();
+        public SimpleDoubleProperty getD(){
+            return d;
         }
+        
+        
         
         // deletes the old curve, and recomputes the new curve
         private void remakeCurve(){
@@ -188,7 +197,7 @@ class functionPane extends Pane {
              */
             double x = 0.0,y = 0.0;
             
-            for (int i = 0; i < 26; i++){
+            for (int i = 0; i < 300; i++){
                 
                 y = a.doubleValue() * Math.sin(b.doubleValue() * x + c.doubleValue())
                         + d.doubleValue();
@@ -196,27 +205,11 @@ class functionPane extends Pane {
                 curve.getPoints().add(x*xScaler);
                 curve.getPoints().add(y*yScaler);
                 
-                x+=0.25;
+                x+=0.1;
             }
-        }
-        
-        // animation thing
-        private void animate(){
-            /**
-             *   a varies from 0 to 5  
-             *   b varies from 1 to 10
-             *   goes on for 5 seconds
-             *   disables text fields while running
-             */
-            
-      
-            
-        }
-        
-        
+        }     
 }
 public class Lab4 extends Application {
-    
     @Override
     public void start(Stage primaryStage) {
         
@@ -250,7 +243,7 @@ public class Lab4 extends Application {
             try {
                 Double a = Double.parseDouble(txtbox1.getText());
                 
-                if (a.doubleValue() >= 0 && a.doubleValue() <=5) 
+                if (a >= 0 && a <=5) 
                     fpane.setA(a);
                 else {
                     System.out.println("Enter a value from 0-5");
@@ -272,7 +265,7 @@ public class Lab4 extends Application {
             try {
                 Double b = Double.parseDouble(txtbox2.getText());
                 
-                if (b.doubleValue() >= 0 && b.doubleValue() <=10) 
+                if (b >= 0 && b <=10) 
                     fpane.setB(b);
                 else {
                     System.out.println("Enter a value from 0-10");
@@ -294,8 +287,8 @@ public class Lab4 extends Application {
             try {
                 Double c = Double.parseDouble(txtbox3.getText());
                 
-                if (c.doubleValue() >= -Math.PI && c.doubleValue() <= Math.PI) 
-                    fpane.setC(-c);
+                if (c >= -Math.PI && c <= Math.PI) 
+                    fpane.setC(c);
                 else {
                     System.out.println("Enter a value from -3.14 to 3.14");
                     fpane.setA(1.0);
@@ -316,8 +309,8 @@ public class Lab4 extends Application {
             try {
                 Double d = Double.parseDouble(txtbox4.getText());
                 
-                if (d.doubleValue() >= -5 && d.doubleValue() <= 5) 
-                    fpane.setD(-d);
+                if (d >= -5 && d <= 5) 
+                    fpane.setD(d);
                 else {
                     System.out.println("Enter a value from -5 to 5");
                     fpane.setA(1.0);
@@ -338,12 +331,44 @@ public class Lab4 extends Application {
             fpane.setB(1.0);
             fpane.setC(0.0);
             fpane.setD(0.0);
+            
+            txtbox1.setDisable(false);
+            txtbox2.setDisable(false);
+            txtbox3.setDisable(false);
+            txtbox4.setDisable(false);
         });
         
         // Animate button
         Button animateBtn = new Button("Animate");
         animateBtn.setOnAction(e -> {
             
+            EventHandler<ActionEvent> finished = f-> {
+                fpane.setA(1.0);
+                fpane.setB(1.0);
+                fpane.setC(0.0);
+                fpane.setD(0.0);
+
+                txtbox1.setDisable(false);
+                txtbox2.setDisable(false);
+                txtbox3.setDisable(false);
+                txtbox4.setDisable(false);
+            };
+            
+            Timeline timeline = new Timeline();
+            timeline.setCycleCount(0);
+            timeline.getKeyFrames().add(new KeyFrame (Duration.millis(5000),
+                new KeyValue (fpane.getA(), 5)));
+            timeline.getKeyFrames().add(new KeyFrame (Duration.millis(5000),
+                new KeyValue (fpane.getB(), 10)));
+            timeline.getKeyFrames().add(new KeyFrame (Duration.millis(6000),
+                finished));
+            timeline.play();
+            
+            
+            txtbox1.setDisable(true);
+            txtbox2.setDisable(true);
+            txtbox3.setDisable(true);
+            txtbox4.setDisable(true);
         });
       
         
@@ -361,9 +386,6 @@ public class Lab4 extends Application {
         primaryStage.show();
     }
 
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String[] args) {
         launch(args);
     }
