@@ -337,6 +337,8 @@ public class Drawing extends Application {
         
         sidebar.getChildren().addAll(btncircle, btnsquare, btnrounded, btntriangle
         , btnoval);
+        
+        sidebar.getChildren().addAll(btncircle);
         root.setLeft(sidebar);
     }
     
