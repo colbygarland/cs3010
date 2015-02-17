@@ -308,6 +308,7 @@ public class Drawing extends Application {
         menubar.setStyle("-fx-background-color: darkgray;");
         // menu shape to select which shape to use
         Menu shapemenu = new Menu("Shape");
+        
         Menu linemenu = new Menu("Line");
         Menu picturemenu = new Menu("Picture");
         Menu filemenu = new Menu("File");
@@ -337,7 +338,6 @@ public class Drawing extends Application {
         textbox.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.TEXT_BOX));
         
         
-        
         choosepicture.setOnAction(e -> {
             FileChooser picChooser = new FileChooser();
             picChooser.setTitle("Open Image");
@@ -346,15 +346,15 @@ public class Drawing extends Application {
             File selectedFile = picChooser.showOpenDialog(new Stage());
             ImageView imgview = new ImageView();
         });
-        print.setOnAction(e -> {
-            this.print(pane);
-        });
+        print.setOnAction(e -> this.print(pane));
+        
         close.setOnAction(e -> Platform.exit());
         // disable things that either don't work or I don't want to work
         print.setDisable(true);
         scribble.setDisable(true);
         pixelspray.setDisable(true);
         choosepicture.setDisable(false);
+        choosepicture.setDisable(true);
         save.setDisable(true);
         
         colorpicker.setValue(Color.RED);
@@ -399,8 +399,6 @@ public class Drawing extends Application {
         btntriangle.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.TRIANGLE));
         btnoval.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.OVAL));
         
-        
-        
         sidebar.getChildren().addAll(btncircle, btnsquare, btnrounded, btntriangle
         , btnoval);
         
@@ -420,12 +418,12 @@ public class Drawing extends Application {
         root.setLeft(vbox);
         
         rect.setOnMouseEntered(e -> {
-            root.setLeft(sidebar);
-            sidebar.setOnMouseExited(f -> 
-                root.setLeft(vbox));
-            
+            root.setLeft(vbox);
+            vbox.setOnMouseEntered(g -> {
+                root.setLeft(sidebar);
+                sidebar.setOnMouseExited(f -> root.setLeft(vbox));
+            });
         });
-        
         VBox vbox2 = new VBox();
         vbox2.getChildren().add(rect2);
         vbox2.setTranslateY(250);
@@ -440,17 +438,19 @@ public class Drawing extends Application {
         Button btntext = new Button("Text Box");
         sidebar2.getChildren().addAll(btnline, btnsquiggle, btntext);
         
-        btnline.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.LINE));
-        btntext.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.TEXT_BOX));
-        btnsquiggle.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.SQUIGGLE));
+        btnline.setOnAction(a -> MyShape.setDefaultShapeType(MyShape.LINE));
+        btntext.setOnAction(b -> MyShape.setDefaultShapeType(MyShape.TEXT_BOX));
+        btnsquiggle.setOnAction(c -> MyShape.setDefaultShapeType(MyShape.SQUIGGLE));
         
-        rect2.setOnMouseEntered(e -> {
-            root.setRight(sidebar2);
-            sidebar2.setOnMouseExited(f -> root.setRight(vbox2));
+        rect2.setOnMouseEntered(d -> {
+            vbox2.setOnMouseEntered(h -> {
+                root.setRight(sidebar2);
+                sidebar2.setOnMouseExited(f -> root.setRight(vbox2));
+            });
+        
         });
-        
+                
     }
-    
     @Override
     public void start(Stage primaryStage) {
 
