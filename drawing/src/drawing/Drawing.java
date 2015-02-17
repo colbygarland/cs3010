@@ -1,7 +1,6 @@
 
 package drawing;
 
-import java.awt.Image;
 import java.io.File;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -22,7 +21,11 @@ import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.Slider;
+import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -99,8 +102,7 @@ class MyShape extends StackPane implements Drawable{
                        s = l;
                        break;
             case TEXT_BOX: Text t = new Text("Hi");
-                           //t.setScaleX(5);
-                           //t.setScaleY(5);
+                           t.setStroke(defaultFillPaint);
                            s = t;
                             break;
                 
@@ -134,8 +136,18 @@ class MyShape extends StackPane implements Drawable{
             r.setHeight(height-this.getInsets().getTop()-this.getInsets().getBottom()-r.getStrokeWidth());
         } else if(shape instanceof Ellipse){
             Ellipse e = (Ellipse)shape;
-            e.setCenterX(width-this.getInsets().getLeft()-this.getInsets().getRight()-e.getStrokeWidth());
-            e.setCenterY(height-this.getInsets().getTop()-this.getInsets().getBottom()-e.getStrokeWidth());
+            e.setCenterX(width/2);
+            e.setCenterY(height);
+            e.setRadiusX(width/2.0 - this.getInsets().getLeft() - e.getStrokeWidth()/2.0);
+            e.setRadiusY(height/2.0 - this.getInsets().getTop() - this.getInsets().getBottom() - e.getStrokeWidth());
+        } else if(shape instanceof Polygon){
+            Polygon s = (Polygon)shape;
+            s.setScaleX(width/10.0 - this.getInsets().getLeft() - this.getInsets().getRight() - s.getStrokeWidth()/2.0);
+            s.setScaleY(height/10.0 - this.getInsets().getTop() - this.getInsets().getBottom() - s.getStrokeWidth()/2.0);
+        } else if(shape instanceof Text){
+            Text t = (Text)shape;
+            t.setScaleX(width/10.0);
+            t.setScaleY(height/10.0);
         }
     }
     public boolean isSelected(){
@@ -148,19 +160,26 @@ class MyShape extends StackPane implements Drawable{
 
     }
     public BooleanProperty selectedProperty(){
-        
         return selected;
     } 
     public boolean shapeContains(double x,  double y){
         if (shape instanceof Circle) return shape.contains(x-this.getWidth()/2, y-this.getHeight()/2);
         else if(shape instanceof Rectangle)
             return shape.contains(x-this.getInsets().getLeft(), y-this.getInsets().getTop());
+        else if(shape instanceof Ellipse)
+            return shape.contains(x - this.getInsets().getLeft(), y-this.getInsets().getTop());
+        else if(shape instanceof Polygon)
+            return shape.contains(x - this.getInsets().getLeft(), y-this.getInsets().getTop());
+        else if(shape instanceof Line)
+            return shape.contains(x - this.getInsets().getLeft(), y-this.getInsets().getTop());
+        else if(shape instanceof Text)
+            return shape.contains(x - this.getInsets().getLeft(), y-this.getInsets().getTop());
         else return false;
     }
     public static void setDefaultFillPaint(Paint value){
         defaultFillPaint = value;
     }
-    public static void setSDefaulttrokePaint(Paint value){
+    public static void setDefaultStrokePaint(Paint value){
         defaultStrokePaint = value;
     }
     public static void setDefaultSelectedPaint(Paint value){
@@ -210,8 +229,6 @@ class MyShape extends StackPane implements Drawable{
         if (this.isSelected()) t.setOnMouseClicked(e -> {
             String msg;
             msg = this.getOnKeyTyped().toString();
-                
-           
             t.setText(msg);
         });
     }
@@ -240,9 +257,6 @@ class DrawPane extends Pane{
     } 
     private void mousePressed(MouseEvent me){
         //System.out.println("MousePressed");
-        
-        
-        
         MyShape s = new MyShape();
         s.relocate(me.getSceneX()-s.getInsets().getLeft()-MyShape.getDefaultWidth()/2 - 48, 
                 me.getSceneY()-s.getInsets().getTop()-MyShape.getDefaultHeight()/2-30);
@@ -263,6 +277,10 @@ class DrawPane extends Pane{
             selectedShape = s;
             oldMouseX = e.getSceneX();
             oldMouseY = e.getSceneY();
+            
+            this.setOnKeyPressed((KeyEvent ke) -> {
+                if (ke.getCode() == KeyCode.DELETE) this.getChildren().remove(s);
+            });
         } else selectedShape = null;
         e.consume();//Don't trigger any clicks in the parent
     }
@@ -283,7 +301,7 @@ class DrawPane extends Pane{
             oldMouseY = newMouseY;
             if(s.shapeContains(e.getX(),e.getY())||dragging){
                dragging=true;
-               s.relocate(newMouseX+dx-e.getX(),newMouseY+dy-e.getY());
+               s.relocate(newMouseX-50/*+dx*/,newMouseY-30/*+dy*/);
             }
             else {
                s.setPrefHeight(s.getHeight()+dy);
@@ -299,6 +317,7 @@ public class Drawing extends Application {
     DrawPane pane = new DrawPane();
     BorderPane root = new BorderPane();
     ColorPicker colorpicker = new ColorPicker();
+    ColorPicker strokepicker = new ColorPicker();
     
     // all the menu bar code here
     public void menuBar(){
@@ -328,6 +347,11 @@ public class Drawing extends Application {
         MenuItem save = new MenuItem("Save");
         MenuItem NEW = new MenuItem("New Drawing");
         
+        Text colorchoosertext = new Text("Adjust Fill Colour:");
+        colorchoosertext.setTranslateY(7);
+        Text colorstroketext = new Text("Adjust Stroke Colour:");
+        colorstroketext.setTranslateY(7);
+        
         // set all the actions to change the shapes
         circle.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.CIRCLE));
         rectangle.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.RECTANGLE));
@@ -336,7 +360,6 @@ public class Drawing extends Application {
         triangle.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.TRIANGLE));
         line.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.LINE));
         textbox.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.TEXT_BOX));
-        
         
         choosepicture.setOnAction(e -> {
             FileChooser picChooser = new FileChooser();
@@ -350,19 +373,26 @@ public class Drawing extends Application {
         
         close.setOnAction(e -> Platform.exit());
         // disable things that either don't work or I don't want to work
-        print.setDisable(true);
+        print.setDisable(false);
         scribble.setDisable(true);
         pixelspray.setDisable(true);
         choosepicture.setDisable(false);
-        choosepicture.setDisable(true);
         save.setDisable(true);
         
         colorpicker.setValue(Color.RED);
         colorpicker.setStyle("-fx-background-color: darkgray;");
         colorpicker.setOnAction(e -> {
                 Color c = colorpicker.getValue();
+                MyShape.setDefaultFillPaint(c);
                 if (!(pane.getSelectedShape() == null))
                     pane.getSelectedShape().setFillColor(c);
+        });
+        strokepicker.setValue(Color.BLACK);
+        strokepicker.setStyle("-fx-background-color: darkgray;");
+        strokepicker.setOnAction(e -> {
+            Color c = strokepicker.getValue();
+            MyShape.setDefaultStrokePaint(c);
+            if (!(pane.getSelectedShape() == null)) pane.getSelectedShape().setStrokeColor(c);
         });
         
         NEW.setOnAction(e -> {
@@ -378,20 +408,49 @@ public class Drawing extends Application {
         
         HBox hbox = new HBox();
         hbox.setBackground(new Background(new BackgroundFill(Color.DARKGRAY,CornerRadii.EMPTY,Insets.EMPTY)));
-        hbox.getChildren().addAll(menubar, colorpicker);
+        hbox.getChildren().addAll(menubar, colorchoosertext, colorpicker, colorstroketext, strokepicker);
         hbox.setPrefWidth(600);
+        
         root.setTop(hbox);
     }
     // all the side toolbar code here
     public void sideBar(){
         VBox sidebar = new VBox();
         sidebar.setSpacing(10);
+        sidebar.setFillWidth(false);
         sidebar.setStyle("-fx-background-color: darkgray;");
         Button btncircle = new Button("Circle");
         Button btnsquare = new Button("Square");
         Button btnrounded = new Button("Rounded Rectangle");
         Button btntriangle = new Button("Triangle");
         Button btnoval = new Button("Oval");
+        
+        Text slidertext = new Text("Adjust Stroke Width");
+        Slider strokeslider = new Slider(0,20,3);
+        strokeslider.setShowTickMarks(true);
+        strokeslider.setShowTickLabels(true);
+        strokeslider.setOnMouseClicked(e -> MyShape.setDefaultStrokeWidth(strokeslider.getValue()));
+        
+        Text slidertext2 = new Text("Enter Stroke Width:");
+        TextField sliderfield = new TextField();
+        sliderfield.setPrefColumnCount(2);
+        sliderfield.setOnAction(e ->{
+            
+            // constrain A from 0-5
+            try {
+                Double a = Double.parseDouble(sliderfield.getText());
+                
+                if (a >= 0 && a <=25) {
+                    MyShape.setDefaultStrokeWidth(a);
+                    strokeslider.setValue(a);
+                } else {
+                    System.out.println("Enter a value from 0-20");
+                }
+            } catch(NumberFormatException incorrect){
+                System.out.println("Enter a number from 0-5");
+            }
+            sliderfield.clear();
+        });
         
         btncircle.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.CIRCLE));
         btnsquare.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.RECTANGLE));
@@ -400,14 +459,13 @@ public class Drawing extends Application {
         btnoval.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.OVAL));
         
         sidebar.getChildren().addAll(btncircle, btnsquare, btnrounded, btntriangle
-        , btnoval);
+        , btnoval, slidertext, strokeslider, slidertext2, sliderfield);
         
         Rectangle rect = new Rectangle(50,25);
         rect.setRotate(90);
         Rectangle rect2 = new Rectangle(50,25);
         rect2.setRotate(90);
         rect2.setFill(Color.LIGHTGRAY);
-            
         
         VBox vbox = new VBox();
         vbox.getChildren().add(rect);
@@ -418,12 +476,10 @@ public class Drawing extends Application {
         root.setLeft(vbox);
         
         rect.setOnMouseEntered(e -> {
-            root.setLeft(vbox);
-            vbox.setOnMouseEntered(g -> {
-                root.setLeft(sidebar);
-                sidebar.setOnMouseExited(f -> root.setLeft(vbox));
-            });
+            root.setLeft(sidebar);
+            sidebar.setOnMouseExited(f -> root.setLeft(vbox));
         });
+        
         VBox vbox2 = new VBox();
         vbox2.getChildren().add(rect2);
         vbox2.setTranslateY(250);
@@ -443,11 +499,8 @@ public class Drawing extends Application {
         btnsquiggle.setOnAction(c -> MyShape.setDefaultShapeType(MyShape.SQUIGGLE));
         
         rect2.setOnMouseEntered(d -> {
-            vbox2.setOnMouseEntered(h -> {
-                root.setRight(sidebar2);
-                sidebar2.setOnMouseExited(f -> root.setRight(vbox2));
-            });
-        
+            root.setRight(sidebar2);
+            sidebar2.setOnMouseExited(f -> root.setRight(vbox2));
         });
                 
     }
@@ -455,7 +508,6 @@ public class Drawing extends Application {
     public void start(Stage primaryStage) {
 
         menuBar();
-        // buggy, when enabled doesn't place objects properly
         sideBar();
         
         root.setCenter(pane);
