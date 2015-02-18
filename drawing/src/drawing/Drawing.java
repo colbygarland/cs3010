@@ -245,6 +245,7 @@ class DrawPane extends Pane{
     private boolean dragging = false;
     private double oldMouseX;
     private double oldMouseY;
+    Stack stack = new Stack();
 
     public DrawPane(){
         super();
@@ -319,8 +320,35 @@ class DrawPane extends Pane{
     
     public void copy(MyShape s){
         if (!s.isSelected()) return;
-        MyShape sCopy = s;
+        stack.push(s);
+    }
+    
+    public void paste(){
+        MyShape s = (MyShape)stack.pop();
+    }
         
+    public void save(){
+        FileChooser saveChooser = new FileChooser();
+        saveChooser.setTitle("Save Drawing");
+        File f = saveChooser.showSaveDialog(new Stage());
+        
+        // locations for the nodes
+        double x,y;
+        // file to save to
+
+        
+        for (Node shape: this.getChildren()){
+            x = shape.getLayoutX();
+            y = shape.getLayoutY();
+            
+            
+        }
+    }
+    
+    public void open(){
+        FileChooser drawingChooser = new FileChooser();
+        drawingChooser.setTitle("Open Drawing");
+        File drawing = drawingChooser.showOpenDialog(new Stage());
     }
 }
 
@@ -330,7 +358,7 @@ public class Drawing extends Application {
     BorderPane root = new BorderPane();
     ColorPicker colorpicker = new ColorPicker();
     ColorPicker strokepicker = new ColorPicker();
-    Stack stack = new Stack();
+    
     
     // all the menu bar code here
     public void menuBar(){
@@ -528,30 +556,7 @@ public class Drawing extends Application {
         });
                 
     }
-    
-    public void save(){
-        FileChooser saveChooser = new FileChooser();
-        saveChooser.setTitle("Save Drawing");
-        File f = saveChooser.showSaveDialog(new Stage());
-        
-        // locations for the nodes
-        double x,y;
-        // file to save to
 
-        
-        for (Node shape: pane.getChildren()){
-            x = shape.getLayoutX();
-            y = shape.getLayoutY();
-            
-            
-        }
-    }
-    
-    public void open(){
-        FileChooser drawingChooser = new FileChooser();
-        drawingChooser.setTitle("Open Drawing");
-        File drawing = drawingChooser.showOpenDialog(new Stage());
-    }
     
     
     @Override
