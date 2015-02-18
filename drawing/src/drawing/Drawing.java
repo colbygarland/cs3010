@@ -1,7 +1,11 @@
 
 package drawing;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.nio.file.Path;
+import java.util.Stack;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -63,6 +67,7 @@ class MyShape extends StackPane implements Drawable{
     public static final int LINE = 5;
     public static final int SQUIGGLE = 6;
     public static final int TEXT_BOX = 7;
+    public static final int PICTURE = 8;
     private final SimpleBooleanProperty selected;
     private final Node shape;
     private static Paint defaultFillPaint=Color.RED;
@@ -105,6 +110,7 @@ class MyShape extends StackPane implements Drawable{
                            t.setStroke(defaultFillPaint);
                            s = t;
                             break;
+            case PICTURE: break;
                 
         }
         return s;
@@ -310,6 +316,12 @@ class DrawPane extends Pane{
             s.changeSizeButOnlyDuringADrag(s.getWidth(), s.getHeight());
         }
     }
+    
+    public void copy(MyShape s){
+        if (!s.isSelected()) return;
+        MyShape sCopy = s;
+        
+    }
 }
 
 public class Drawing extends Application {
@@ -318,6 +330,7 @@ public class Drawing extends Application {
     BorderPane root = new BorderPane();
     ColorPicker colorpicker = new ColorPicker();
     ColorPicker strokepicker = new ColorPicker();
+    Stack stack = new Stack();
     
     // all the menu bar code here
     public void menuBar(){
@@ -327,7 +340,7 @@ public class Drawing extends Application {
         menubar.setStyle("-fx-background-color: darkgray;");
         // menu shape to select which shape to use
         Menu shapemenu = new Menu("Shape");
-        
+        Menu editmenu = new Menu("Edit");
         Menu linemenu = new Menu("Line");
         Menu picturemenu = new Menu("Picture");
         Menu filemenu = new Menu("File");
@@ -346,6 +359,11 @@ public class Drawing extends Application {
         MenuItem close = new MenuItem("Close");
         MenuItem save = new MenuItem("Save");
         MenuItem NEW = new MenuItem("New Drawing");
+        MenuItem open = new MenuItem("Open");
+        MenuItem undo = new MenuItem("Undo");
+        MenuItem redo = new MenuItem("Redo");
+        MenuItem copy = new MenuItem("Copy");
+        MenuItem paste = new MenuItem("Paste");
         
         Text colorchoosertext = new Text("Adjust Fill Colour:");
         colorchoosertext.setTranslateY(7);
@@ -370,14 +388,19 @@ public class Drawing extends Application {
             ImageView imgview = new ImageView();
         });
         print.setOnAction(e -> this.print(pane));
-        
+        save.setOnAction(e -> this.save());
+        open.setOnAction(e -> this.open());
         close.setOnAction(e -> Platform.exit());
+        
+        copy.setOnAction(e -> pane.copy(pane.getSelectedShape()));
         // disable things that either don't work or I don't want to work
         print.setDisable(false);
         scribble.setDisable(true);
         pixelspray.setDisable(true);
         choosepicture.setDisable(false);
-        save.setDisable(true);
+        paste.setDisable(true);
+        undo.setDisable(true);
+        redo.setDisable(true);
         
         colorpicker.setValue(Color.RED);
         colorpicker.setStyle("-fx-background-color: darkgray;");
@@ -400,11 +423,12 @@ public class Drawing extends Application {
             root.setCenter(pane);
         });
         
-        menubar.getMenus().addAll(filemenu,shapemenu, linemenu, picturemenu);
+        menubar.getMenus().addAll(filemenu,editmenu,shapemenu, linemenu, picturemenu);
         shapemenu.getItems().addAll(circle, rectangle, roundedrectangle, oval, triangle);
+        editmenu.getItems().addAll(undo, redo, copy, paste);
         linemenu.getItems().addAll(line, scribble, pixelspray, textbox);
         picturemenu.getItems().add(choosepicture);
-        filemenu.getItems().addAll(NEW,save,print,close);
+        filemenu.getItems().addAll(NEW,save,open, print,close);
         
         HBox hbox = new HBox();
         hbox.setBackground(new Background(new BackgroundFill(Color.DARKGRAY,CornerRadii.EMPTY,Insets.EMPTY)));
@@ -504,6 +528,32 @@ public class Drawing extends Application {
         });
                 
     }
+    
+    public void save(){
+        FileChooser saveChooser = new FileChooser();
+        saveChooser.setTitle("Save Drawing");
+        File f = saveChooser.showSaveDialog(new Stage());
+        
+        // locations for the nodes
+        double x,y;
+        // file to save to
+
+        
+        for (Node shape: pane.getChildren()){
+            x = shape.getLayoutX();
+            y = shape.getLayoutY();
+            
+            
+        }
+    }
+    
+    public void open(){
+        FileChooser drawingChooser = new FileChooser();
+        drawingChooser.setTitle("Open Drawing");
+        File drawing = drawingChooser.showOpenDialog(new Stage());
+    }
+    
+    
     @Override
     public void start(Stage primaryStage) {
 
