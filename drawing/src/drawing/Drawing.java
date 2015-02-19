@@ -1,7 +1,11 @@
 
 package drawing;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
+import java.nio.file.Path;
+import java.util.Stack;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
@@ -18,14 +22,17 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Slider;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Background;
 import javafx.scene.layout.BackgroundFill;
@@ -63,6 +70,7 @@ class MyShape extends StackPane implements Drawable{
     public static final int LINE = 5;
     public static final int SQUIGGLE = 6;
     public static final int TEXT_BOX = 7;
+    public static final int PICTURE = 8;
     private final SimpleBooleanProperty selected;
     private final Node shape;
     private static Paint defaultFillPaint=Color.RED;
@@ -105,6 +113,7 @@ class MyShape extends StackPane implements Drawable{
                            t.setStroke(defaultFillPaint);
                            s = t;
                             break;
+            case PICTURE: break;
                 
         }
         return s;
@@ -124,6 +133,11 @@ class MyShape extends StackPane implements Drawable{
         this.setPadding(new Insets(5,5,5,5));//A couple of magic numbers 5..10
         this.setMinWidth(10);
         this.setMinHeight(10);
+    }
+    
+    public MyShape(MyShape other){
+        this.shape = other.shape;
+        this.selected = other.selected;
     }
    
     public void changeSizeButOnlyDuringADrag(double width, double height){ //Buggy
@@ -203,6 +217,9 @@ class MyShape extends StackPane implements Drawable{
     public static double getDefaultHeight(){
         return defaultHeight;
     } 
+    public static int getDefaultShapeType(){
+        return defaultShapeType;
+    }
     public void setFillColor(Color value){
         if(shape instanceof Shape){
             ((Shape)shape).setFill(value);
@@ -239,6 +256,7 @@ class DrawPane extends Pane{
     private boolean dragging = false;
     private double oldMouseX;
     private double oldMouseY;
+    Stack stack = new Stack();
 
     public DrawPane(){
         super();
@@ -256,14 +274,32 @@ class DrawPane extends Pane{
       return null;  
     } 
     private void mousePressed(MouseEvent me){
-        //System.out.println("MousePressed");
-        MyShape s = new MyShape();
-        s.relocate(me.getSceneX()-s.getInsets().getLeft()-MyShape.getDefaultWidth()/2 - 48, 
-                me.getSceneY()-s.getInsets().getTop()-MyShape.getDefaultHeight()/2-30);
-        s.setOnMousePressed(e->shapePressed(e,s));
-        s.setOnMouseReleased(e->shapeReleased(e,s));
-        s.setOnMouseDragged(e->shapeDragged(e,s));
-        this.getChildren().add(s);
+        
+        if(me.getButton() == MouseButton.SECONDARY) contextMenu(me);
+        else {
+            MyShape s = new MyShape();
+            s.relocate(me.getSceneX()-s.getInsets().getLeft()-MyShape.getDefaultWidth()/2 - 48, 
+                    me.getSceneY()-s.getInsets().getTop()-MyShape.getDefaultHeight()/2-30);
+            s.setOnMousePressed(e->shapePressed(e,s));
+            s.setOnMouseReleased(e->shapeReleased(e,s));
+            s.setOnMouseDragged(e->shapeDragged(e,s));
+            this.getChildren().add(s);
+        }
+       
+    }
+    
+    private void contextMenu(MouseEvent me){
+        ContextMenu contextmenu = new ContextMenu();
+        MenuItem copy = new MenuItem("Copy");
+        copy.setOnAction(e -> this.copy(selectedShape));
+        MenuItem paste = new MenuItem("Paste");
+        paste.setOnAction(e -> this.paste(me));
+        MenuItem undo = new MenuItem("Undo");
+        MenuItem redo = new MenuItem("Redo");
+        MenuItem delete = new MenuItem("Delete");
+        delete.setOnAction(e -> this.getChildren().remove(this.selectedShape));
+        contextmenu.getItems().addAll(copy,paste,undo,redo, delete);
+        contextmenu.show(this, me.getScreenX(), me.getScreenY());
     }
     
     private void mouseReleased(MouseEvent me){
@@ -278,7 +314,7 @@ class DrawPane extends Pane{
             oldMouseX = e.getSceneX();
             oldMouseY = e.getSceneY();
             
-            this.setOnKeyPressed((KeyEvent ke) -> {
+            this.setOnKeyReleased((KeyEvent ke) -> {
                 if (ke.getCode() == KeyCode.DELETE) this.getChildren().remove(s);
             });
         } else selectedShape = null;
@@ -310,6 +346,46 @@ class DrawPane extends Pane{
             s.changeSizeButOnlyDuringADrag(s.getWidth(), s.getHeight());
         }
     }
+    
+    public void copy(MyShape s){
+        if (!s.isSelected()) return;
+        MyShape t = new MyShape(s);
+        stack.push(t);
+    }
+    
+    public void paste(MouseEvent me){
+        MyShape s = (MyShape)stack.pop();
+        s.relocate(me.getSceneX()-s.getInsets().getLeft()-MyShape.getDefaultWidth()/2 - 48, 
+                    me.getSceneY()-s.getInsets().getTop()-MyShape.getDefaultHeight()/2-30);
+        s.setOnMousePressed(e->shapePressed(e,s));
+        s.setOnMouseReleased(e->shapeReleased(e,s));
+        s.setOnMouseDragged(e->shapeDragged(e,s));
+        this.getChildren().add(s);
+    }
+        
+    public void save(){
+        FileChooser saveChooser = new FileChooser();
+        saveChooser.setTitle("Save Drawing");
+        File f = saveChooser.showSaveDialog(new Stage());
+        
+        // locations for the nodes
+        double x,y;
+        // file to save to
+
+        
+        for (Node shape: this.getChildren()){
+            x = shape.getLayoutX();
+            y = shape.getLayoutY();
+            
+            
+        }
+    }
+    
+    public void open(){
+        FileChooser drawingChooser = new FileChooser();
+        drawingChooser.setTitle("Open Drawing");
+        File drawing = drawingChooser.showOpenDialog(new Stage());
+    }
 }
 
 public class Drawing extends Application {
@@ -319,6 +395,7 @@ public class Drawing extends Application {
     ColorPicker colorpicker = new ColorPicker();
     ColorPicker strokepicker = new ColorPicker();
     
+    
     // all the menu bar code here
     public void menuBar(){
         // menu bar to hold everything
@@ -327,7 +404,7 @@ public class Drawing extends Application {
         menubar.setStyle("-fx-background-color: darkgray;");
         // menu shape to select which shape to use
         Menu shapemenu = new Menu("Shape");
-        
+        Menu editmenu = new Menu("Edit");
         Menu linemenu = new Menu("Line");
         Menu picturemenu = new Menu("Picture");
         Menu filemenu = new Menu("File");
@@ -346,6 +423,11 @@ public class Drawing extends Application {
         MenuItem close = new MenuItem("Close");
         MenuItem save = new MenuItem("Save");
         MenuItem NEW = new MenuItem("New Drawing");
+        MenuItem open = new MenuItem("Open");
+        MenuItem undo = new MenuItem("Undo");
+        MenuItem redo = new MenuItem("Redo");
+        MenuItem copy = new MenuItem("Copy");
+        MenuItem paste = new MenuItem("Paste");
         
         Text colorchoosertext = new Text("Adjust Fill Colour:");
         colorchoosertext.setTranslateY(7);
@@ -370,14 +452,16 @@ public class Drawing extends Application {
             ImageView imgview = new ImageView();
         });
         print.setOnAction(e -> this.print(pane));
-        
+        save.setOnAction(e -> pane.save());
+        open.setOnAction(e -> pane.open());
         close.setOnAction(e -> Platform.exit());
+        
+        copy.setOnAction(e -> pane.copy(pane.getSelectedShape()));
         // disable things that either don't work or I don't want to work
         print.setDisable(false);
         scribble.setDisable(true);
         pixelspray.setDisable(true);
         choosepicture.setDisable(false);
-        save.setDisable(true);
         
         colorpicker.setValue(Color.RED);
         colorpicker.setStyle("-fx-background-color: darkgray;");
@@ -400,11 +484,12 @@ public class Drawing extends Application {
             root.setCenter(pane);
         });
         
-        menubar.getMenus().addAll(filemenu,shapemenu, linemenu, picturemenu);
+        menubar.getMenus().addAll(filemenu,editmenu,shapemenu, linemenu, picturemenu);
         shapemenu.getItems().addAll(circle, rectangle, roundedrectangle, oval, triangle);
+        editmenu.getItems().addAll(undo, redo, copy, paste);
         linemenu.getItems().addAll(line, scribble, pixelspray, textbox);
         picturemenu.getItems().add(choosepicture);
-        filemenu.getItems().addAll(NEW,save,print,close);
+        filemenu.getItems().addAll(NEW,save,open, print,close);
         
         HBox hbox = new HBox();
         hbox.setBackground(new Background(new BackgroundFill(Color.DARKGRAY,CornerRadii.EMPTY,Insets.EMPTY)));
@@ -504,6 +589,9 @@ public class Drawing extends Application {
         });
                 
     }
+
+    
+    
     @Override
     public void start(Stage primaryStage) {
 
@@ -511,11 +599,14 @@ public class Drawing extends Application {
         sideBar();
         
         root.setCenter(pane);
+        File f = new File(".");
+        File[] pictures = f.listFiles(new JpgFilter());
         
         Scene scene = new Scene(root);
         
         primaryStage.setTitle("Drawesome");
         primaryStage.setScene(scene);
+        primaryStage.getIcons().add(new Image("file:" + pictures[0]));
         primaryStage.show();
     }
     public void print(final Node node) {

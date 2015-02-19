@@ -4,8 +4,19 @@ ID#   : 5034957
 DATE		TIME(hours)		COMMITS
 ------------------------------------------------
 Feb 12          2.0            -created project
+
 Feb 16          5.0            -fixed bugs, added sidebars
+
 Feb 17          2.5            -added stroke width, colour change
                                -fixed sizing, moving objects
                                -fixed colour defaults to behave properly
-                               -cleaned up interface a bit     
+                               -cleaned up interface a bit
+
+Feb 18          4.0            -added edit menu bar
+                               -added save/open (not implemented though)
+                               -added copy/paste
+                               -copy works, not paste
+                               -added context menus and such
+                               -added logo
+                               
+     
