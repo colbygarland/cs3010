@@ -257,12 +257,14 @@ class DrawPane extends Pane{
     private double oldMouseX;
     private double oldMouseY;
     Stack stack = new Stack();
+    ContextMenu contextmenu = new ContextMenu();
 
     public DrawPane(){
         super();
         this.setPrefSize(800, 600);
         this.setOnMousePressed(e->mousePressed(e));
         this.setOnMouseReleased(e->mouseReleased(e));
+        this.createContextMenu(contextmenu);
     }
     public MyShape getSelectedShape(){
         return selectedShape;
@@ -275,8 +277,9 @@ class DrawPane extends Pane{
     } 
     private void mousePressed(MouseEvent me){
         
-        if(me.getButton() == MouseButton.SECONDARY) contextMenu(me);
+        if (me.getButton() == MouseButton.SECONDARY) contextMenu(me);
         else {
+            if (this.selectedShape == null){
             MyShape s = new MyShape();
             s.relocate(me.getSceneX()-s.getInsets().getLeft()-MyShape.getDefaultWidth()/2 - 48, 
                     me.getSceneY()-s.getInsets().getTop()-MyShape.getDefaultHeight()/2-30);
@@ -284,43 +287,66 @@ class DrawPane extends Pane{
             s.setOnMouseReleased(e->shapeReleased(e,s));
             s.setOnMouseDragged(e->shapeDragged(e,s));
             this.getChildren().add(s);
+            }
+            // deselect everything here somehow!!
+            selectedShape = null;
+            contextmenu.hide();
         }
        
     }
     
-    private void contextMenu(MouseEvent me){
-        ContextMenu contextmenu = new ContextMenu();
+    private void createContextMenu(ContextMenu contextmenu){
         MenuItem copy = new MenuItem("Copy");
-        copy.setOnAction(e -> this.copy(selectedShape));
         MenuItem paste = new MenuItem("Paste");
-        paste.setOnAction(e -> this.paste(me));
         MenuItem undo = new MenuItem("Undo");
         MenuItem redo = new MenuItem("Redo");
         MenuItem delete = new MenuItem("Delete");
         delete.setOnAction(e -> this.getChildren().remove(this.selectedShape));
         contextmenu.getItems().addAll(copy,paste,undo,redo, delete);
-        contextmenu.show(this, me.getScreenX(), me.getScreenY());
+    }
+    
+    private void contextMenu(MouseEvent me){
+        if (!contextmenu.isShowing()) contextmenu.show(this, me.getScreenX(), me.getScreenY());
+        
     }
     
     private void mouseReleased(MouseEvent me){
         //System.out.println("MouseReleased");
+        
     }
-
-    private void shapePressed(MouseEvent e, MyShape s) {
-       // System.out.println("ShapePressed");
-        if(e.isSecondaryButtonDown())s.setSelected(!s.isSelected());
+    
+     private void shapePressed(MouseEvent e, MyShape s) {
+        if(e.isSecondaryButtonDown()){
+            s.setSelected(!s.isSelected());
+            contextMenu(e);
+        }
         if(s.isSelected()){
             selectedShape = s;
             oldMouseX = e.getSceneX();
             oldMouseY = e.getSceneY();
-            
-            this.setOnKeyReleased((KeyEvent ke) -> {
-                if (ke.getCode() == KeyCode.DELETE) this.getChildren().remove(s);
-            });
         } else selectedShape = null;
         e.consume();//Don't trigger any clicks in the parent
     }
-
+/*    
+     *** FIX THIS FOR SELECTING OBJECTS
+     
+    private void shapePressed(MouseEvent e, MyShape s) {
+       // System.out.println("ShapePressed");
+        if(e.isSecondaryButtonDown()) contextMenu(e);
+        if(e.isPrimaryButtonDown() && !s.isSelected())s.setSelected(true);
+        if(s.isSelected()){
+            selectedShape = s;
+            oldMouseX = e.getSceneX();
+            oldMouseY = e.getSceneY();
+        } else {
+            selectedShape = null;
+           // s.setSelected(!s.isSelected());
+            System.out.println("Test");
+        }
+        if (e.isPrimaryButtonDown() && s.isSelected())s.setSelected(!s.isSelected());
+        e.consume();//Don't trigger any clicks in the parent
+    }
+*/
     private void shapeReleased(MouseEvent e, MyShape s) {
         //System.out.println("ShapeReleased");
         dragging=false;
@@ -432,7 +458,7 @@ public class Drawing extends Application {
         
         Text colorchoosertext = new Text("Adjust Fill Colour:");
         colorchoosertext.setTranslateY(7);
-        Text colorstroketext = new Text("Adjust Stroke Colour:");
+        Text colorstroketext = new Text("Adjust Outline Colour:");
         colorstroketext.setTranslateY(7);
         
         // set all the actions to change the shapes
@@ -511,13 +537,13 @@ public class Drawing extends Application {
         Button btntriangle = new Button("Triangle");
         Button btnoval = new Button("Oval");
         
-        Text slidertext = new Text("Adjust Stroke Width");
+        Text slidertext = new Text("Adjust Outline Width");
         Slider strokeslider = new Slider(0,20,3);
         strokeslider.setShowTickMarks(true);
         strokeslider.setShowTickLabels(true);
         strokeslider.setOnMouseClicked(e -> MyShape.setDefaultStrokeWidth(strokeslider.getValue()));
         
-        Text slidertext2 = new Text("Enter Stroke Width:");
+        Text slidertext2 = new Text("Enter Outline Width:");
         TextField sliderfield = new TextField();
         sliderfield.setPrefColumnCount(2);
         sliderfield.setOnAction(e ->{

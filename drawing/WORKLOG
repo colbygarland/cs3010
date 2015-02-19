@@ -12,16 +12,15 @@ Feb 17          2.5            -added stroke width, colour change
                                -fixed colour defaults to behave properly
                                -cleaned up interface a bit
 
-<<<<<<< HEAD
 Feb 18          4.0            -added edit menu bar
                                -added save/open (not implemented though)
                                -added copy/paste
                                -copy works, not paste
                                -added context menus and such
                                -added logo
-=======
-Feb 18          1.0            -added edit menu bar
-                               -added save/open (not implemented though)
->>>>>>> 9d731c3964f125d12d5cba22f2fb6e1c6524b103
+
+Feb 19          2.0            -fixed context menu from having multiple instance                               -changed stroke to outline for users
+                               -right click on shape and menu comes up           
+
                                
      
