@@ -361,8 +361,9 @@ class DrawPane extends Pane{
         s.setOnMouseReleased(e->shapeReleased(e,s));
         s.setOnMouseDragged(e->shapeDragged(e,s));
         this.getChildren().add(s);
+        stack.push(s);
     }
-        
+
     public void save(){
         FileChooser saveChooser = new FileChooser();
         saveChooser.setTitle("Save Drawing");
