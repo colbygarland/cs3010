@@ -23,6 +23,6 @@ Feb 19          2.0            -fixed context menu from having multiple instance
                                -changed stroke to outline for users
                                -right click on shape and menu comes up           
 
-Feb 26                         -fixed selecting shapes, now click on shape to select,
+Feb 26          2.0            -fixed selecting shapes, now click on shape to select,
                                 click anywhere on pane to deselect                               
      
