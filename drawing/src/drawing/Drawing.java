@@ -288,9 +288,12 @@ class DrawPane extends Pane{
             s.setOnMouseDragged(e->shapeDragged(e,s));
             this.getChildren().add(s);
             }
-            // deselect everything here somehow!!
-            selectedShape = null;
+            // deselect everything 
             contextmenu.hide();
+            if (!(this.getSelectedShape() == null)){
+                this.getSelectedShape().setSelected(false);
+                selectedShape = null;
+            }
         }
        
     }
@@ -314,39 +317,23 @@ class DrawPane extends Pane{
         //System.out.println("MouseReleased");
         
     }
-    
-     private void shapePressed(MouseEvent e, MyShape s) {
-        if(e.isSecondaryButtonDown()){
-            s.setSelected(!s.isSelected());
-            contextMenu(e);
-        }
-        if(s.isSelected()){
-            selectedShape = s;
-            oldMouseX = e.getSceneX();
-            oldMouseY = e.getSceneY();
-        } else selectedShape = null;
-        e.consume();//Don't trigger any clicks in the parent
-    }
-/*    
-     *** FIX THIS FOR SELECTING OBJECTS
-     
+
     private void shapePressed(MouseEvent e, MyShape s) {
        // System.out.println("ShapePressed");
         if(e.isSecondaryButtonDown()) contextMenu(e);
-        if(e.isPrimaryButtonDown() && !s.isSelected())s.setSelected(true);
+        if(e.isPrimaryButtonDown() && !s.isSelected()){
+            s.setSelected(true);
+        }
         if(s.isSelected()){
             selectedShape = s;
             oldMouseX = e.getSceneX();
             oldMouseY = e.getSceneY();
         } else {
             selectedShape = null;
-           // s.setSelected(!s.isSelected());
-            System.out.println("Test");
         }
-        if (e.isPrimaryButtonDown() && s.isSelected())s.setSelected(!s.isSelected());
         e.consume();//Don't trigger any clicks in the parent
     }
-*/
+
     private void shapeReleased(MouseEvent e, MyShape s) {
         //System.out.println("ShapeReleased");
         dragging=false;
@@ -370,6 +357,7 @@ class DrawPane extends Pane{
                s.setPrefWidth(s.getWidth()+dx); 
             }
             s.changeSizeButOnlyDuringADrag(s.getWidth(), s.getHeight());
+            
         }
     }
     
