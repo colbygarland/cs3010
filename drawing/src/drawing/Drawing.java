@@ -80,17 +80,19 @@ class MyShape extends StackPane implements Drawable{
     private static int defaultShapeType = CIRCLE;
     private static double defaultWidth = 50;
     private static double defaultHeight = 50;
+    private int shapeType = 0;
 
     
     private Node makeShape(){
         Node s = null;
         switch(defaultShapeType){
-            case CIRCLE: s = new Circle(Math.min(defaultWidth/2, defaultHeight/2));break;
-            case RECTANGLE: s = new Rectangle(defaultWidth,defaultHeight);break;
+            case CIRCLE: s = new Circle(Math.min(defaultWidth/2, defaultHeight/2)); shapeType = CIRCLE;break;
+            case RECTANGLE: s = new Rectangle(defaultWidth,defaultHeight);shapeType = RECTANGLE;break;
             case ROUNDED_RECTANGLE: Rectangle r = new Rectangle(defaultWidth*2, defaultHeight);
                                     r.setArcHeight(20);
                                     r.setArcWidth(20);
                                     s = r;
+                                    shapeType = ROUNDED_RECTANGLE;
                                     break;
             case OVAL:  Ellipse e = new Ellipse();
                         e.setCenterX(defaultWidth/2);
@@ -98,9 +100,10 @@ class MyShape extends StackPane implements Drawable{
                         e.setRadiusX(defaultWidth);
                         e.setRadiusY(defaultHeight/2);
                         s = e;
+                        shapeType = OVAL;
                         break;
             case TRIANGLE: s = new Polygon(defaultWidth*1.5,0,defaultWidth*2,defaultWidth,
-                    defaultWidth,defaultWidth); 
+                    defaultWidth,defaultWidth); shapeType = TRIANGLE;
                            break;
             case LINE: Line l = new Line();
                        l.setStartX(0);
@@ -108,12 +111,14 @@ class MyShape extends StackPane implements Drawable{
                        l.setEndX(defaultWidth);
                        l.setEndY(defaultHeight);
                        s = l;
+                       shapeType = LINE;
                        break;
             case TEXT_BOX: Text t = new Text("Hi");
                            t.setStroke(defaultFillPaint);
                            s = t;
+                           shapeType = TEXT_BOX;
                             break;
-            case PICTURE: break;
+            case PICTURE: shapeType = PICTURE;break;
                 
         }
         return s;
@@ -138,6 +143,18 @@ class MyShape extends StackPane implements Drawable{
     public MyShape(MyShape other){
         this.shape = other.shape;
         this.selected = other.selected;
+        this.shapeType = other.shapeType;
+        setDefaultShapeType(this.shapeType);
+        this.makeShape();
+        if (this.shape instanceof Shape){
+            ((Shape)this.shape).setFill(defaultFillPaint);
+            ((Shape)this.shape).setStroke(defaultStrokePaint);
+            ((Shape)this.shape).setStrokeWidth(defaultStrokeWidth);
+        }
+        this.getChildren().add(this.shape);
+        this.setPadding(new Insets(5,5,5,5));//A couple of magic numbers 5..10
+        this.setMinWidth(10);
+        this.setMinHeight(10);
     }
    
     public void changeSizeButOnlyDuringADrag(double width, double height){ //Buggy
@@ -256,15 +273,15 @@ class DrawPane extends Pane{
     private boolean dragging = false;
     private double oldMouseX;
     private double oldMouseY;
-    Stack stack = new Stack();
-    ContextMenu contextmenu = new ContextMenu();
+    private MyShape temp = null;
+    private ContextMenu contextmenu = new ContextMenu();
+    private boolean contextFlag = true;
 
     public DrawPane(){
         super();
         this.setPrefSize(800, 600);
         this.setOnMousePressed(e->mousePressed(e));
         this.setOnMouseReleased(e->mouseReleased(e));
-        this.createContextMenu(contextmenu);
     }
     public MyShape getSelectedShape(){
         return selectedShape;
@@ -276,7 +293,6 @@ class DrawPane extends Pane{
       return null;  
     } 
     private void mousePressed(MouseEvent me){
-        
         if (me.getButton() == MouseButton.SECONDARY) contextMenu(me);
         else {
             if (this.selectedShape == null){
@@ -295,22 +311,24 @@ class DrawPane extends Pane{
                 selectedShape = null;
             }
         }
-       
-    }
-    
-    private void createContextMenu(ContextMenu contextmenu){
-        MenuItem copy = new MenuItem("Copy");
-        MenuItem paste = new MenuItem("Paste");
-        MenuItem undo = new MenuItem("Undo");
-        MenuItem redo = new MenuItem("Redo");
-        MenuItem delete = new MenuItem("Delete");
-        delete.setOnAction(e -> this.getChildren().remove(this.selectedShape));
-        contextmenu.getItems().addAll(copy,paste,undo,redo, delete);
     }
     
     private void contextMenu(MouseEvent me){
-        if (!contextmenu.isShowing()) contextmenu.show(this, me.getScreenX(), me.getScreenY());
-        
+        if (!contextmenu.isShowing()){
+            if (contextFlag){
+                MenuItem copy = new MenuItem("Copy");
+                MenuItem paste = new MenuItem("Paste");
+                MenuItem undo = new MenuItem("Undo");
+                MenuItem redo = new MenuItem("Redo");
+                MenuItem delete = new MenuItem("Delete");
+                delete.setOnAction(e -> this.getChildren().remove(this.selectedShape));
+                copy.setOnAction(e -> this.copy(this.selectedShape));
+                paste.setOnAction(e -> this.paste(me));
+                contextmenu.getItems().addAll(copy,paste,undo,redo,delete);
+                contextFlag = false;
+            }
+            contextmenu.show(this, me.getScreenX(), me.getScreenY());
+        }
     }
     
     private void mouseReleased(MouseEvent me){
@@ -357,25 +375,26 @@ class DrawPane extends Pane{
                s.setPrefWidth(s.getWidth()+dx); 
             }
             s.changeSizeButOnlyDuringADrag(s.getWidth(), s.getHeight());
-            
         }
     }
     
     public void copy(MyShape s){
         if (!s.isSelected()) return;
-        MyShape t = new MyShape(s);
-        stack.push(t);
+        temp = new MyShape(s);
     }
     
     public void paste(MouseEvent me){
-        MyShape s = (MyShape)stack.pop();
-        s.relocate(me.getSceneX()-s.getInsets().getLeft()-MyShape.getDefaultWidth()/2 - 48, 
-                    me.getSceneY()-s.getInsets().getTop()-MyShape.getDefaultHeight()/2-30);
-        s.setOnMousePressed(e->shapePressed(e,s));
-        s.setOnMouseReleased(e->shapeReleased(e,s));
-        s.setOnMouseDragged(e->shapeDragged(e,s));
-        this.getChildren().add(s);
-        stack.push(s);
+        if (!(temp == null)){
+            if (selectedShape == null){
+                MyShape s = new MyShape(temp);
+                s.relocate(me.getSceneX()-s.getInsets().getLeft()-MyShape.getDefaultWidth()/2 - 48, 
+                        me.getSceneY()-s.getInsets().getTop()-MyShape.getDefaultHeight()/2-30);
+                s.setOnMousePressed(e->shapePressed(e,s));
+                s.setOnMouseReleased(e->shapeReleased(e,s));
+                s.setOnMouseDragged(e->shapeDragged(e,s));
+                this.getChildren().add(s);
+            }
+        }
     }
 
     public void save(){
@@ -400,6 +419,10 @@ class DrawPane extends Pane{
         FileChooser drawingChooser = new FileChooser();
         drawingChooser.setTitle("Open Drawing");
         File drawing = drawingChooser.showOpenDialog(new Stage());
+    }
+    
+    public void help(){
+        
     }
 }
 
@@ -443,6 +466,7 @@ public class Drawing extends Application {
         MenuItem redo = new MenuItem("Redo");
         MenuItem copy = new MenuItem("Copy");
         MenuItem paste = new MenuItem("Paste");
+        MenuItem help = new MenuItem("Help");
         
         Text colorchoosertext = new Text("Adjust Fill Colour:");
         colorchoosertext.setTranslateY(7);
@@ -470,6 +494,7 @@ public class Drawing extends Application {
         save.setOnAction(e -> pane.save());
         open.setOnAction(e -> pane.open());
         close.setOnAction(e -> Platform.exit());
+        help.setOnAction(e -> pane.help());
         
         copy.setOnAction(e -> pane.copy(pane.getSelectedShape()));
         // disable things that either don't work or I don't want to work
@@ -504,7 +529,7 @@ public class Drawing extends Application {
         editmenu.getItems().addAll(undo, redo, copy, paste);
         linemenu.getItems().addAll(line, scribble, pixelspray, textbox);
         picturemenu.getItems().add(choosepicture);
-        filemenu.getItems().addAll(NEW,save,open, print,close);
+        filemenu.getItems().addAll(NEW,save,open, print,help,close);
         
         HBox hbox = new HBox();
         hbox.setBackground(new Background(new BackgroundFill(Color.DARKGRAY,CornerRadii.EMPTY,Insets.EMPTY)));
