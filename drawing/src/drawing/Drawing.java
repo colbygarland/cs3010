@@ -141,8 +141,10 @@ class MyShape extends StackPane implements Drawable{
     }
     
     public MyShape(MyShape other){
+        super();
         this.shape = other.shape;
-        this.selected = other.selected;
+        this.selected = new SimpleBooleanProperty(false);
+        this.selected.set(false);
         this.shapeType = other.shapeType;
         setDefaultShapeType(this.shapeType);
         this.makeShape();
@@ -366,9 +368,11 @@ class DrawPane extends Pane{
             double dy = newMouseY-oldMouseY;
             oldMouseX = newMouseX;
             oldMouseY = newMouseY;
+            double centerX = s.getWidth() / 2 + 25;
+            double centerY = s.getHeight() / 2 + 25;
             if(s.shapeContains(e.getX(),e.getY())||dragging){
                dragging=true;
-               s.relocate(newMouseX-50/*+dx*/,newMouseY-30/*+dy*/);
+               s.relocate(newMouseX-centerX/*+dx*/,newMouseY-centerY/*+dy*/);
             }
             else {
                s.setPrefHeight(s.getHeight()+dy);
@@ -421,19 +425,20 @@ class DrawPane extends Pane{
         File drawing = drawingChooser.showOpenDialog(new Stage());
     }
     
-    public void help(){
-        
-    }
+
 }
 
 public class Drawing extends Application {
     
     DrawPane pane = new DrawPane();
     BorderPane root = new BorderPane();
+    
     ColorPicker colorpicker = new ColorPicker();
     ColorPicker strokepicker = new ColorPicker();
     
-    
+    public void help(){
+        
+    }
     // all the menu bar code here
     public void menuBar(){
         // menu bar to hold everything
@@ -494,7 +499,7 @@ public class Drawing extends Application {
         save.setOnAction(e -> pane.save());
         open.setOnAction(e -> pane.open());
         close.setOnAction(e -> Platform.exit());
-        help.setOnAction(e -> pane.help());
+        help.setOnAction(e -> help());
         
         copy.setOnAction(e -> pane.copy(pane.getSelectedShape()));
         // disable things that either don't work or I don't want to work
