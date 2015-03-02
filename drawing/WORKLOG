@@ -30,4 +30,8 @@ Feb 28          1.0            -fixed moving method, so selected items move easi
 
 Mar 01          2.0            -designed/implemented help screen
                                -added delete key and copy keycode
-                               -started with z-ordering(not done)     
+                               -started with z-ordering(not done)
+
+Mar 02          1.5            -changed shapeType properties
+                               -added default shape change to selected shape
+                               -above may not be a good idea; check and see     

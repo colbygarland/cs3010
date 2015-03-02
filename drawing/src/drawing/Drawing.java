@@ -84,7 +84,7 @@ class MyShape extends StackPane implements Drawable{
     private static int defaultShapeType = CIRCLE;
     private static double defaultWidth = 50;
     private static double defaultHeight = 50;
-    private int shapeType = 0;
+    protected int shapeType = 0;
 
     
     private Node makeShape(){
@@ -369,6 +369,8 @@ class DrawPane extends Pane{
             selectedShape = s;
             oldMouseX = e.getSceneX();
             oldMouseY = e.getSceneY();
+            //** See if this is a good idea
+            //MyShape.setDefaultShapeType(s.shapeType);   
         } else {
             selectedShape = null;
         }
@@ -412,8 +414,8 @@ class DrawPane extends Pane{
         if (!(temp == null)){
             if (selectedShape == null){
                 MyShape s = new MyShape(temp);
-                s.relocate(me.getSceneX()-s.getInsets().getLeft()-MyShape.getDefaultWidth()/2 - 48, 
-                        me.getSceneY()-s.getInsets().getTop()-MyShape.getDefaultHeight()/2-30);
+                s.relocate(me.getSceneX()-s.getInsets().getLeft()-MyShape.getDefaultWidth()/2 ,
+                        me.getSceneY()-s.getInsets().getTop()-MyShape.getDefaultHeight()/2);
                 s.setOnMousePressed(e->shapePressed(e,s));
                 s.setOnMouseReleased(e->shapeReleased(e,s));
                 s.setOnMouseDragged(e->shapeDragged(e,s));
@@ -479,7 +481,7 @@ public class Drawing extends Application {
         help6.setFont(myFont);
         Text help7 = new Text("   • To copy/paste/delete, select an object and right click to pick option");
         help7.setFont(myFont);
-        Text help8 = new Text("   • Hover over boxes on the side for the sidebar choosers");
+        Text help8 = new Text("   • Hover over boxes on the side for the sidebar selectors");
         help8.setFont(myFont);
         Text help9 = new Text("   • In left sidebar, move the slider or type in desired outline width");
         help9.setFont(myFont);
