@@ -27,6 +27,7 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Slider;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -50,6 +51,9 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -138,6 +142,11 @@ class MyShape extends StackPane implements Drawable{
         this.setPadding(new Insets(5,5,5,5));//A couple of magic numbers 5..10
         this.setMinWidth(10);
         this.setMinHeight(10);
+    }
+    
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
     
     public MyShape(MyShape other){
@@ -278,6 +287,7 @@ class DrawPane extends Pane{
     private MyShape temp = null;
     private ContextMenu contextmenu = new ContextMenu();
     private boolean contextFlag = true;
+    private String capturedText = "";
 
     public DrawPane(){
         super();
@@ -294,6 +304,12 @@ class DrawPane extends Pane{
     public MyShape [] getUnSelectedShapes(){ //This could be useful too!
       return null;  
     } 
+    
+    protected void keyTyped(KeyEvent ke){
+        if (ke.getCode() == KeyCode.DELETE)
+            if (this.selectedShape != null) this.getChildren().remove(this.selectedShape);
+        if (ke.getCode() == KeyCode.C) if (this.selectedShape != null) this.copy(this.selectedShape);
+    }
     private void mousePressed(MouseEvent me){
         if (me.getButton() == MouseButton.SECONDARY) contextMenu(me);
         else {
@@ -382,8 +398,8 @@ class DrawPane extends Pane{
         }
     }
     
-    public void copy(MyShape s){
-        if (!s.isSelected()) return;
+    public void copy(MyShape s) {
+        if (this.selectedShape == null) return;
         temp = new MyShape(s);
     }
     
@@ -432,12 +448,49 @@ public class Drawing extends Application {
     
     DrawPane pane = new DrawPane();
     BorderPane root = new BorderPane();
-    
     ColorPicker colorpicker = new ColorPicker();
     ColorPicker strokepicker = new ColorPicker();
     
     public void help(){
+        BorderPane helpPane = new BorderPane();
+        VBox helpBox = new VBox();
+        Font myFont = new Font("Arial", 16);
         
+        Text help1 = new Text("Welcome to Drawesome!");
+        help1.setUnderline(true);
+        help1.setFont(Font.font("Georgia", FontWeight.BOLD, FontPosture.ITALIC,25));
+        
+        Text help2 = new Text("To use Drawesome:");
+        help2.setFont(Font.font("Arial", FontWeight.BOLD,16));
+        
+        
+        Text help3 = new Text("   • Click anywhere to place an object");
+        help3.setFont(myFont);
+        Text help4 = new Text("   • An object can be a shape, line, text, pixel spray, scribble or picture");
+        help4.setFont(myFont);
+        Text help5 = new Text("   • To select an object, left click on the desired object to move/resize");
+        help5.setFont(myFont);
+        Text help6 = new Text("   • Click anywhere else to deselect the object");
+        help6.setFont(myFont);
+        Text help7 = new Text("   • To copy/paste/delete, select an object and right click to pick option");
+        help7.setFont(myFont);
+        Text help8 = new Text("   • Hover over boxes on the side for the sidebar choosers");
+        help8.setFont(myFont);
+        Text help9 = new Text("   • In left sidebar, move the slider or type in desired outline width");
+        help9.setFont(myFont);
+        Text help10 = new Text("   • Right click anywhere (including on objects) to bring up the context menu");
+        help10.setFont(myFont);
+        
+        helpBox.getChildren().addAll(help1,help2,help3,help4,help5,help6,help7,help8,help9,help10);
+        helpBox.setStyle("-fx-background-color: lightgray;");
+        helpPane.setCenter(helpBox);
+        
+        Stage helpStage = new Stage();
+        Scene helpScene = new Scene(helpPane, 650, 210);
+        helpStage.setResizable(false);
+        helpStage.setScene(helpScene);
+        helpStage.setTitle("Help");
+        helpStage.show();
     }
     // all the menu bar code here
     public void menuBar(){
@@ -451,6 +504,7 @@ public class Drawing extends Application {
         Menu linemenu = new Menu("Line");
         Menu picturemenu = new Menu("Picture");
         Menu filemenu = new Menu("File");
+        Menu helpmenu = new Menu("Help");
         // menu items of all the shapes
         MenuItem circle = new MenuItem("Circle");
         MenuItem rectangle = new MenuItem("Square");
@@ -469,9 +523,7 @@ public class Drawing extends Application {
         MenuItem open = new MenuItem("Open");
         MenuItem undo = new MenuItem("Undo");
         MenuItem redo = new MenuItem("Redo");
-        MenuItem copy = new MenuItem("Copy");
-        MenuItem paste = new MenuItem("Paste");
-        MenuItem help = new MenuItem("Help");
+        MenuItem help = new MenuItem("Help Contents");
         
         Text colorchoosertext = new Text("Adjust Fill Colour:");
         colorchoosertext.setTranslateY(7);
@@ -501,7 +553,6 @@ public class Drawing extends Application {
         close.setOnAction(e -> Platform.exit());
         help.setOnAction(e -> help());
         
-        copy.setOnAction(e -> pane.copy(pane.getSelectedShape()));
         // disable things that either don't work or I don't want to work
         print.setDisable(false);
         scribble.setDisable(true);
@@ -529,12 +580,13 @@ public class Drawing extends Application {
             root.setCenter(pane);
         });
         
-        menubar.getMenus().addAll(filemenu,editmenu,shapemenu, linemenu, picturemenu);
+        menubar.getMenus().addAll(filemenu,editmenu,shapemenu, linemenu, picturemenu,helpmenu);
         shapemenu.getItems().addAll(circle, rectangle, roundedrectangle, oval, triangle);
-        editmenu.getItems().addAll(undo, redo, copy, paste);
+        editmenu.getItems().addAll(undo, redo);
         linemenu.getItems().addAll(line, scribble, pixelspray, textbox);
         picturemenu.getItems().add(choosepicture);
-        filemenu.getItems().addAll(NEW,save,open, print,help,close);
+        filemenu.getItems().addAll(NEW,save,open, print,close);
+        helpmenu.getItems().addAll(help);
         
         HBox hbox = new HBox();
         hbox.setBackground(new Background(new BackgroundFill(Color.DARKGRAY,CornerRadii.EMPTY,Insets.EMPTY)));
@@ -644,6 +696,8 @@ public class Drawing extends Application {
         sideBar();
         
         root.setCenter(pane);
+        root.setOnKeyPressed(e -> pane.keyTyped(e));
+        
         File f = new File(".");
         File[] pictures = f.listFiles(new JpgFilter());
         

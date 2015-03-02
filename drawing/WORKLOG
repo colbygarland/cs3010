@@ -26,4 +26,7 @@ Feb 19          2.0            -fixed context menu from having multiple instance
 Feb 26          2.0            -fixed selecting shapes, now click on shape to select,
                                 click anywhere on pane to deselect                               
 
-Feb 28          1.0 (chge)     -fixed moving method, so selected items move easier     
+Feb 28          1.0            -fixed moving method, so selected items move easier
+
+Mar 01                         -designed/implemented help screen
+                               -added delete key and copy key     
