@@ -199,7 +199,6 @@ class MyShape extends StackPane implements Drawable{
         selected.set(value);
         if(value)this.setBackground(new Background(new BackgroundFill(defaultSelectedPaint,CornerRadii.EMPTY,Insets.EMPTY)));
         else this.setBackground(Background.EMPTY);
-
     }
     public BooleanProperty selectedProperty(){
         return selected;
@@ -304,6 +303,12 @@ class DrawPane extends Pane{
     public MyShape [] getUnSelectedShapes(){ //This could be useful too!
       return null;  
     } 
+    public void setZOrderingBack(MyShape s){
+        s.toBack();
+    }
+    public void setZOrderingFront(MyShape s){
+        s.toFront();
+    }
     
     protected void keyTyped(KeyEvent ke){
         if (ke.getCode() == KeyCode.DELETE)
@@ -606,6 +611,7 @@ public class Drawing extends Application {
         Button btnrounded = new Button("Rounded Rectangle");
         Button btntriangle = new Button("Triangle");
         Button btnoval = new Button("Oval");
+        Button btnzordering = new Button(" Send  Shape  Back ");
         
         Text slidertext = new Text("Adjust Outline Width");
         Slider strokeslider = new Slider(0,20,3);
@@ -639,9 +645,20 @@ public class Drawing extends Application {
         btnrounded.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.ROUNDED_RECTANGLE));
         btntriangle.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.TRIANGLE));
         btnoval.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.OVAL));
+        btnzordering.setOnAction(e -> {
+            if (pane.getSelectedShape() != null){
+                if (btnzordering.getText().equals(" Send  Shape  Back ")){
+                    btnzordering.setText("Bring Shape Forward");
+                    pane.setZOrderingBack(pane.getSelectedShape());
+                } else {
+                    btnzordering.setText("Send Shape Back");
+                     pane.setZOrderingFront(pane.getSelectedShape());
+                }
+            }
+        });
         
         sidebar.getChildren().addAll(btncircle, btnsquare, btnrounded, btntriangle
-        , btnoval, slidertext, strokeslider, slidertext2, sliderfield);
+        , btnoval, slidertext, strokeslider, slidertext2, sliderfield, btnzordering);
         
         Rectangle rect = new Rectangle(50,25);
         rect.setRotate(90);
