@@ -27,7 +27,9 @@ import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.Slider;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -50,6 +52,9 @@ import javafx.scene.shape.Line;
 import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontPosture;
+import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -80,7 +85,7 @@ class MyShape extends StackPane implements Drawable{
     private static int defaultShapeType = CIRCLE;
     private static double defaultWidth = 50;
     private static double defaultHeight = 50;
-    private int shapeType = 0;
+    protected int shapeType = 0;
 
     
     private Node makeShape(){
@@ -140,6 +145,11 @@ class MyShape extends StackPane implements Drawable{
         this.setMinHeight(10);
     }
     
+    @Override
+    protected Object clone() throws CloneNotSupportedException {
+        return super.clone();
+    }
+    
     public MyShape(MyShape other){
         super();
         this.shape = other.shape;
@@ -153,10 +163,10 @@ class MyShape extends StackPane implements Drawable{
             ((Shape)this.shape).setStroke(defaultStrokePaint);
             ((Shape)this.shape).setStrokeWidth(defaultStrokeWidth);
         }
-        this.getChildren().add(this.shape);
-        this.setPadding(new Insets(5,5,5,5));//A couple of magic numbers 5..10
-        this.setMinWidth(10);
-        this.setMinHeight(10);
+        this.getChildren().add(shape);
+       // this.setPadding(new Insets(5,5,5,5));//A couple of magic numbers 5..10
+       // this.setMinWidth(10);
+        //this.setMinHeight(10);
     }
    
     public void changeSizeButOnlyDuringADrag(double width, double height){ //Buggy
@@ -181,8 +191,23 @@ class MyShape extends StackPane implements Drawable{
             Text t = (Text)shape;
             t.setScaleX(width/10.0);
             t.setScaleY(height/10.0);
-        }
+        } 
     }
+    
+    public void changeLineSize(MouseEvent me, MyShape ms){
+        Line l = (Line)ms.shape;
+        
+        double x = me.getSceneX();
+        double y = me.getSceneY();
+        double endX = me.getX();
+        double endY = me.getY();
+        l.setStartX(x);
+        l.setStartY(y);
+        
+        l.setEndX(endX);
+        l.setEndY(endY);
+    }
+    
     public boolean isSelected(){
         return selected.get();
     }
@@ -190,7 +215,6 @@ class MyShape extends StackPane implements Drawable{
         selected.set(value);
         if(value)this.setBackground(new Background(new BackgroundFill(defaultSelectedPaint,CornerRadii.EMPTY,Insets.EMPTY)));
         else this.setBackground(Background.EMPTY);
-
     }
     public BooleanProperty selectedProperty(){
         return selected;
@@ -278,9 +302,12 @@ class DrawPane extends Pane{
     private MyShape temp = null;
     private ContextMenu contextmenu = new ContextMenu();
     private boolean contextFlag = true;
+    private String capturedText = "";
+    private Stack stack;
 
     public DrawPane(){
         super();
+        stack = new Stack();
         this.setPrefSize(800, 600);
         this.setOnMousePressed(e->mousePressed(e));
         this.setOnMouseReleased(e->mouseReleased(e));
@@ -294,17 +321,29 @@ class DrawPane extends Pane{
     public MyShape [] getUnSelectedShapes(){ //This could be useful too!
       return null;  
     } 
+    public void setZOrderingBack(MyShape s){
+        s.toBack();
+    }
+    public void setZOrderingFront(MyShape s){
+        s.toFront();
+    }
+    
+    protected void keyTyped(KeyEvent ke){
+        if (ke.getCode() == KeyCode.DELETE)
+            if (this.selectedShape != null) this.getChildren().remove(this.selectedShape);
+        if (ke.getCode() == KeyCode.C) if (this.selectedShape != null) this.copy(this.selectedShape);
+    }
     private void mousePressed(MouseEvent me){
         if (me.getButton() == MouseButton.SECONDARY) contextMenu(me);
         else {
             if (this.selectedShape == null){
-            MyShape s = new MyShape();
-            s.relocate(me.getSceneX()-s.getInsets().getLeft()-MyShape.getDefaultWidth()/2 - 48, 
-                    me.getSceneY()-s.getInsets().getTop()-MyShape.getDefaultHeight()/2-30);
-            s.setOnMousePressed(e->shapePressed(e,s));
-            s.setOnMouseReleased(e->shapeReleased(e,s));
-            s.setOnMouseDragged(e->shapeDragged(e,s));
-            this.getChildren().add(s);
+                MyShape s = new MyShape();
+                s.relocate(me.getSceneX()-s.getInsets().getLeft()-MyShape.getDefaultWidth()/2 - 48, 
+                        me.getSceneY()-s.getInsets().getTop()-MyShape.getDefaultHeight()/2-30);
+                s.setOnMousePressed(e->shapePressed(e,s));
+                s.setOnMouseReleased(e->shapeReleased(e,s));
+                s.setOnMouseDragged(e->shapeDragged(e,s));
+                this.getChildren().add(s);
             }
             // deselect everything 
             contextmenu.hide();
@@ -318,7 +357,7 @@ class DrawPane extends Pane{
     private void contextMenu(MouseEvent me){
         if (!contextmenu.isShowing()){
             if (contextFlag){
-                MenuItem copy = new MenuItem("Copy");
+                MenuItem copy = new MenuItem("Cut");
                 MenuItem paste = new MenuItem("Paste");
                 MenuItem undo = new MenuItem("Undo");
                 MenuItem redo = new MenuItem("Redo");
@@ -326,6 +365,8 @@ class DrawPane extends Pane{
                 delete.setOnAction(e -> this.getChildren().remove(this.selectedShape));
                 copy.setOnAction(e -> this.copy(this.selectedShape));
                 paste.setOnAction(e -> this.paste(me));
+                undo.setOnAction(e -> undo());
+                redo.setOnAction(e -> redo());
                 contextmenu.getItems().addAll(copy,paste,undo,redo,delete);
                 contextFlag = false;
             }
@@ -348,6 +389,8 @@ class DrawPane extends Pane{
             selectedShape = s;
             oldMouseX = e.getSceneX();
             oldMouseY = e.getSceneY();
+            //** See if this is a good idea
+            //MyShape.setDefaultShapeType(s.shapeType);   
         } else {
             selectedShape = null;
         }
@@ -362,6 +405,10 @@ class DrawPane extends Pane{
     private void shapeDragged(MouseEvent e, MyShape s) {
         //System.out.println("ShapeDragged");
         if(s.isSelected()) {
+            stack.push(s);
+            String shapeDraggedMsg = new String("ShapeDragged");
+            stack.push(shapeDraggedMsg);
+            
             double newMouseX = e.getSceneX();
             double newMouseY = e.getSceneY();
             double dx = newMouseX-oldMouseX;
@@ -370,20 +417,23 @@ class DrawPane extends Pane{
             oldMouseY = newMouseY;
             double centerX = s.getWidth() / 2 + 25;
             double centerY = s.getHeight() / 2 + 25;
+            double x = newMouseX-centerX;
+            double y = newMouseY-centerY;
             if(s.shapeContains(e.getX(),e.getY())||dragging){
                dragging=true;
-               s.relocate(newMouseX-centerX/*+dx*/,newMouseY-centerY/*+dy*/);
+               s.relocate(x/*+dx*/,y/*+dy*/);
             }
             else {
                s.setPrefHeight(s.getHeight()+dy);
                s.setPrefWidth(s.getWidth()+dx); 
             }
-            s.changeSizeButOnlyDuringADrag(s.getWidth(), s.getHeight());
+            if (s.shapeType == MyShape.LINE) s.changeLineSize(e, s);
+            else s.changeSizeButOnlyDuringADrag(s.getWidth(), s.getHeight());
         }
     }
     
-    public void copy(MyShape s){
-        if (!s.isSelected()) return;
+    public void copy(MyShape s) {
+        if (this.selectedShape == null) return;
         temp = new MyShape(s);
     }
     
@@ -391,14 +441,28 @@ class DrawPane extends Pane{
         if (!(temp == null)){
             if (selectedShape == null){
                 MyShape s = new MyShape(temp);
-                s.relocate(me.getSceneX()-s.getInsets().getLeft()-MyShape.getDefaultWidth()/2 - 48, 
-                        me.getSceneY()-s.getInsets().getTop()-MyShape.getDefaultHeight()/2-30);
+                s.relocate(/*me.getSceneX()-s.getInsets().getLeft()-MyShape.getDefaultWidth()/2*/me.getSceneX() ,
+                        me.getSceneY()/*me.getSceneY()-s.getInsets().getTop()-MyShape.getDefaultHeight()/2*/);
                 s.setOnMousePressed(e->shapePressed(e,s));
                 s.setOnMouseReleased(e->shapeReleased(e,s));
                 s.setOnMouseDragged(e->shapeDragged(e,s));
                 this.getChildren().add(s);
             }
         }
+    }
+    
+    public void undo(){
+        String tmp = (String)stack.pop();
+        
+        if (tmp.equals("ShapeDragged")){
+            MyShape ms = (MyShape)stack.pop();
+            
+            
+        }
+    }
+    
+    public void redo(){
+        
     }
 
     public void save(){
@@ -432,12 +496,49 @@ public class Drawing extends Application {
     
     DrawPane pane = new DrawPane();
     BorderPane root = new BorderPane();
-    
     ColorPicker colorpicker = new ColorPicker();
     ColorPicker strokepicker = new ColorPicker();
     
     public void help(){
+        BorderPane helpPane = new BorderPane();
+        VBox helpBox = new VBox();
+        Font myFont = new Font("Arial", 16);
         
+        Text help1 = new Text("Welcome to Drawesome!");
+        help1.setUnderline(true);
+        help1.setFont(Font.font("Georgia", FontWeight.BOLD, FontPosture.ITALIC,25));
+        
+        Text help2 = new Text("To use Drawesome:");
+        help2.setFont(Font.font("Arial", FontWeight.BOLD,16));
+        
+        
+        Text help3 = new Text("   • Click anywhere to place an object");
+        help3.setFont(myFont);
+        Text help4 = new Text("   • An object can be a shape, line, text, pixel spray, scribble or picture");
+        help4.setFont(myFont);
+        Text help5 = new Text("   • To select an object, left click on the desired object to move/resize");
+        help5.setFont(myFont);
+        Text help6 = new Text("   • Click anywhere else to deselect the object");
+        help6.setFont(myFont);
+        Text help7 = new Text("   • To copy/paste/delete, select an object and right click to pick option");
+        help7.setFont(myFont);
+        Text help8 = new Text("   • Hover over boxes on the side for the sidebar selectors");
+        help8.setFont(myFont);
+        Text help9 = new Text("   • In left sidebar, move the slider or type in desired outline width");
+        help9.setFont(myFont);
+        Text help10 = new Text("   • Right click anywhere (including on objects) to bring up the context menu");
+        help10.setFont(myFont);
+        
+        helpBox.getChildren().addAll(help1,help2,help3,help4,help5,help6,help7,help8,help9,help10);
+        helpBox.setStyle("-fx-background-color: lightgray;");
+        helpPane.setCenter(helpBox);
+        
+        Stage helpStage = new Stage();
+        Scene helpScene = new Scene(helpPane, 650, 210);
+        helpStage.setResizable(false);
+        helpStage.setScene(helpScene);
+        helpStage.setTitle("Help");
+        helpStage.show();
     }
     // all the menu bar code here
     public void menuBar(){
@@ -451,6 +552,7 @@ public class Drawing extends Application {
         Menu linemenu = new Menu("Line");
         Menu picturemenu = new Menu("Picture");
         Menu filemenu = new Menu("File");
+        Menu helpmenu = new Menu("Help");
         // menu items of all the shapes
         MenuItem circle = new MenuItem("Circle");
         MenuItem rectangle = new MenuItem("Square");
@@ -469,9 +571,7 @@ public class Drawing extends Application {
         MenuItem open = new MenuItem("Open");
         MenuItem undo = new MenuItem("Undo");
         MenuItem redo = new MenuItem("Redo");
-        MenuItem copy = new MenuItem("Copy");
-        MenuItem paste = new MenuItem("Paste");
-        MenuItem help = new MenuItem("Help");
+        MenuItem help = new MenuItem("Help Contents");
         
         Text colorchoosertext = new Text("Adjust Fill Colour:");
         colorchoosertext.setTranslateY(7);
@@ -500,8 +600,9 @@ public class Drawing extends Application {
         open.setOnAction(e -> pane.open());
         close.setOnAction(e -> Platform.exit());
         help.setOnAction(e -> help());
+        undo.setOnAction(e -> pane.undo());
+        redo.setOnAction(e -> pane.redo());
         
-        copy.setOnAction(e -> pane.copy(pane.getSelectedShape()));
         // disable things that either don't work or I don't want to work
         print.setDisable(false);
         scribble.setDisable(true);
@@ -529,12 +630,13 @@ public class Drawing extends Application {
             root.setCenter(pane);
         });
         
-        menubar.getMenus().addAll(filemenu,editmenu,shapemenu, linemenu, picturemenu);
+        menubar.getMenus().addAll(filemenu,editmenu,shapemenu, linemenu, picturemenu,helpmenu);
         shapemenu.getItems().addAll(circle, rectangle, roundedrectangle, oval, triangle);
-        editmenu.getItems().addAll(undo, redo, copy, paste);
+        editmenu.getItems().addAll(undo, redo);
         linemenu.getItems().addAll(line, scribble, pixelspray, textbox);
         picturemenu.getItems().add(choosepicture);
-        filemenu.getItems().addAll(NEW,save,open, print,help,close);
+        filemenu.getItems().addAll(NEW,save,open, print,close);
+        helpmenu.getItems().addAll(help);
         
         HBox hbox = new HBox();
         hbox.setBackground(new Background(new BackgroundFill(Color.DARKGRAY,CornerRadii.EMPTY,Insets.EMPTY)));
@@ -554,6 +656,7 @@ public class Drawing extends Application {
         Button btnrounded = new Button("Rounded Rectangle");
         Button btntriangle = new Button("Triangle");
         Button btnoval = new Button("Oval");
+        Button btnzordering = new Button(" Send  Shape  Back ");
         
         Text slidertext = new Text("Adjust Outline Width");
         Slider strokeslider = new Slider(0,20,3);
@@ -583,13 +686,24 @@ public class Drawing extends Application {
         });
         
         btncircle.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.CIRCLE));
+        btncircle.setTooltip(new Tooltip("Sets default shape to Circle"));
         btnsquare.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.RECTANGLE));
+        btnsquare.setTooltip(new Tooltip("Sets default shape to Square"));
         btnrounded.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.ROUNDED_RECTANGLE));
+        btnrounded.setTooltip(new Tooltip("Sets default shape to Rounded Rectangle"));
         btntriangle.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.TRIANGLE));
+        btntriangle.setTooltip(new Tooltip("Sets default shape to Triangle"));
         btnoval.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.OVAL));
+        btnoval.setTooltip(new Tooltip("Sets default shape to Oval"));
+        btnzordering.setOnAction(e -> {
+            if (pane.getSelectedShape() != null){
+                pane.setZOrderingBack(pane.getSelectedShape());
+            }
+        });
+        btnzordering.setTooltip(new Tooltip("Sends the selected object to the back"));
         
         sidebar.getChildren().addAll(btncircle, btnsquare, btnrounded, btntriangle
-        , btnoval, slidertext, strokeslider, slidertext2, sliderfield);
+        , btnoval, slidertext, strokeslider, slidertext2, sliderfield, btnzordering);
         
         Rectangle rect = new Rectangle(50,25);
         rect.setRotate(90);
@@ -625,14 +739,16 @@ public class Drawing extends Application {
         sidebar2.getChildren().addAll(btnline, btnsquiggle, btntext);
         
         btnline.setOnAction(a -> MyShape.setDefaultShapeType(MyShape.LINE));
+        btnline.setTooltip(new Tooltip("Sets default shape to Line"));
         btntext.setOnAction(b -> MyShape.setDefaultShapeType(MyShape.TEXT_BOX));
+        btntext.setTooltip(new Tooltip("Sets default shape to Text"));
         btnsquiggle.setOnAction(c -> MyShape.setDefaultShapeType(MyShape.SQUIGGLE));
+        btnsquiggle.setTooltip(new Tooltip("Sets default shape to Squiggle"));
         
         rect2.setOnMouseEntered(d -> {
             root.setRight(sidebar2);
             sidebar2.setOnMouseExited(f -> root.setRight(vbox2));
         });
-                
     }
 
     
@@ -644,6 +760,8 @@ public class Drawing extends Application {
         sideBar();
         
         root.setCenter(pane);
+        root.setOnKeyPressed(e -> pane.keyTyped(e));
+        
         File f = new File(".");
         File[] pictures = f.listFiles(new JpgFilter());
         
