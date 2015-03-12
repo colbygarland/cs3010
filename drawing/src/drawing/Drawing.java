@@ -442,7 +442,7 @@ class DrawPane extends Pane{
             if (selectedShape == null){
                 MyShape s = new MyShape(temp);
                 s.relocate(/*me.getSceneX()-s.getInsets().getLeft()-MyShape.getDefaultWidth()/2*/me.getSceneX() ,
-                        me.getSceneY()/*me.getSceneY()-s.getInsets().getTop()-MyShape.getDefaultHeight()/2*/);
+                  me.getSceneY());
                 s.setOnMousePressed(e->shapePressed(e,s));
                 s.setOnMouseReleased(e->shapeReleased(e,s));
                 s.setOnMouseDragged(e->shapeDragged(e,s));
@@ -701,8 +701,8 @@ public class Drawing extends Application {
             }
         });
         btnzordering.setTooltip(new Tooltip("Sends the selected object to the back"));
-        
-        sidebar.getChildren().addAll(btncircle, btnsquare, btnrounded, btntriangle
+
+  sidebar.getChildren().addAll(btncircle, btnsquare, btnrounded, btntriangle
         , btnoval, slidertext, strokeslider, slidertext2, sliderfield, btnzordering);
         
         Rectangle rect = new Rectangle(50,25);
