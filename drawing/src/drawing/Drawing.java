@@ -10,7 +10,9 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.collections.ObservableList;
 import javafx.collections.ObservableSet;
+import javafx.geometry.Bounds;
 import javafx.geometry.Insets;
 import javafx.print.PageLayout;
 import javafx.print.PageOrientation;
@@ -56,6 +58,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextBoundsType;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.stage.Stage;
@@ -64,6 +67,14 @@ interface Drawable {
     void setFillColor(Color c);
     void setStrokeColor(Color c); 
     void setStrokeWidth(int width);
+    void setFont(Font value);
+    void setText(String value);
+    Paint getFillColor();
+    Paint getStrokeColor(); 
+    double getStrokeWidth();
+    double [] getStrokeDashArray();    
+    Font getFont();
+    String getText();
 }
 
 class MyShape extends StackPane implements Drawable{
@@ -77,15 +88,17 @@ class MyShape extends StackPane implements Drawable{
     public static final int TEXT_BOX = 7;
     public static final int PICTURE = 8;
     private final SimpleBooleanProperty selected;
-    private final Node shape;
+    protected Node shape;
     private static Paint defaultFillPaint=Color.RED;
-    private static Paint defaultStrokePaint=Color.BLACK;
+    protected static Paint defaultStrokePaint=Color.BLACK;
     private static Paint defaultSelectedPaint=Color.BROWN;
     private static double defaultStrokeWidth=3;
     private static int defaultShapeType = CIRCLE;
     private static double defaultWidth = 50;
     private static double defaultHeight = 50;
     protected int shapeType = 0;
+    private static String defaultFontName = "Times Roman";
+    private static double defaultFontSize = 15;
 
     
     private Node makeShape(){
@@ -118,13 +131,15 @@ class MyShape extends StackPane implements Drawable{
                        s = l;
                        shapeType = LINE;
                        break;
-            case TEXT_BOX: Text t = new Text("Hi");
+            case TEXT_BOX: Text t = new Text("Text");
                            t.setStroke(defaultFillPaint);
                            s = t;
                            shapeType = TEXT_BOX;
                             break;
             case PICTURE: shapeType = PICTURE;break;
-                
+            case SQUIGGLE: shapeType = SQUIGGLE;
+                           s = new Scribble();
+                           break;
         }
         return s;
     }
@@ -134,11 +149,16 @@ class MyShape extends StackPane implements Drawable{
         selected = new SimpleBooleanProperty(false);
         selected.set(false);
         shape = makeShape();
-        if (shape instanceof Shape){
+        if (shape instanceof Text){
+           ((Text)shape).setStroke(defaultStrokePaint);
+           ((Text)shape).setFont(new Font(defaultFontName,defaultFontSize));
+           ((Text)shape).setBoundsType(TextBoundsType.VISUAL);
+        }
+        else if (shape instanceof Shape){
             ((Shape)shape).setFill(defaultFillPaint);
             ((Shape)shape).setStroke(defaultStrokePaint);
             ((Shape)shape).setStrokeWidth(defaultStrokeWidth);
-        }
+        } 
         this.getChildren().add(shape);
         this.setPadding(new Insets(5,5,5,5));//A couple of magic numbers 5..10
         this.setMinWidth(10);
@@ -189,8 +209,17 @@ class MyShape extends StackPane implements Drawable{
             s.setScaleY(height/10.0 - this.getInsets().getTop() - this.getInsets().getBottom() - s.getStrokeWidth()/2.0);
         } else if(shape instanceof Text){
             Text t = (Text)shape;
-            t.setScaleX(width/10.0);
-            t.setScaleY(height/10.0);
+            Bounds boundsInLocal = t.getBoundsInLocal();
+            double h = boundsInLocal.getHeight();
+            double w = boundsInLocal.getWidth();
+            double newHeight = height - getInsets().getTop() - getInsets().getBottom();
+            double newWidth = width - getInsets().getLeft() - getInsets().getRight();
+            double wr = newWidth/w;
+            double hr = newHeight/h;
+            double scale = Math.min(wr, hr);
+            double newSize = Math.max(t.getFont().getSize()*scale,2);
+            String name = t.getFont().getName();
+            t.setFont(new Font(name,newSize));   
         } 
     }
     
@@ -229,8 +258,10 @@ class MyShape extends StackPane implements Drawable{
             return shape.contains(x - this.getInsets().getLeft(), y-this.getInsets().getTop());
         else if(shape instanceof Line)
             return shape.contains(x - this.getInsets().getLeft(), y-this.getInsets().getTop());
-        else if(shape instanceof Text)
-            return shape.contains(x - this.getInsets().getLeft(), y-this.getInsets().getTop());
+        else if(shape instanceof Text){
+            Insets insets = this.getInsets();
+            return x>insets.getLeft()&& x < this.getWidth()-insets.getRight()&&y>insets.getTop()&&y<this.getHeight()-insets.getBottom();
+        }
         else return false;
     }
     public static void setDefaultFillPaint(Paint value){
@@ -285,12 +316,69 @@ class MyShape extends StackPane implements Drawable{
                ((Shape)shape).getStrokeDashArray().add(value[i]);
         }
     }
+     @Override
+    public void setFont(Font value) {
+        if(shape instanceof Text){
+           ((Text)shape).setFont(value);
+        }
+    }
     public void editText(Text t){
         if (this.isSelected()) t.setOnMouseClicked(e -> {
             String msg;
             msg = this.getOnKeyTyped().toString();
             t.setText(msg);
         });
+    }
+
+@Override
+    public Paint getFillColor() {
+        if(shape instanceof Shape)
+            return ((Shape)shape).getFill();
+        else return Color.BLACK;
+    }
+    @Override
+    public Paint getStrokeColor() {
+        if(shape instanceof Shape)
+            return ((Shape)shape).getStroke();
+        else return Color.BLACK;
+    }
+    @Override
+    public double getStrokeWidth() {
+        if(shape instanceof Shape){
+            return ((Shape)shape).getStrokeWidth();
+        } else return 0;
+    }
+    @Override
+    public double[] getStrokeDashArray() {
+        if(shape instanceof Shape){
+            ObservableList<Double> l= ((Shape)shape).getStrokeDashArray();
+            double [] a = new double[l.size()];
+            for(int i = 0; i < a.length; i++)
+                a[i] = l.get(i);
+            return a;
+        } else return new double[0];        
+    }
+    @Override
+    public Font getFont() {
+        if(shape instanceof Text){
+           return ((Text)shape).getFont();
+        }
+        else return Font.getDefault();//System default
+    }
+
+    @Override
+    public void setText(String value) {
+        if(shape instanceof Text){
+           ((Text)shape).setText(value);
+        }
+    }
+
+    @Override
+    public String getText() {
+        if(shape instanceof Text){
+           return ((Text)shape).getText();
+        }
+        else return "";
     }
 }
 
@@ -331,20 +419,46 @@ class DrawPane extends Pane{
     protected void keyTyped(KeyEvent ke){
         if (ke.getCode() == KeyCode.DELETE)
             if (this.selectedShape != null) this.getChildren().remove(this.selectedShape);
-        if (ke.getCode() == KeyCode.C) if (this.selectedShape != null) this.copy(this.selectedShape);
+        if (ke.getCode() == KeyCode.C && this.selectedShape != null) 
+             this.copy(this.selectedShape);
+    }
+    private Node linePressed(MouseEvent me){
+        Line l = new Line();
+        l.setStartX(me.getSceneX()-50);
+        l.setStartY(me.getSceneY()-30);
+        l.setEndX(me.getSceneX() + 100);
+        l.setEndY(me.getSceneY());
+        Node n = l;
+        return n;
     }
     private void mousePressed(MouseEvent me){
+       
         if (me.getButton() == MouseButton.SECONDARY) contextMenu(me);
         else {
             if (this.selectedShape == null){
                 MyShape s = new MyShape();
-                s.relocate(me.getSceneX()-s.getInsets().getLeft()-MyShape.getDefaultWidth()/2 - 48, 
-                        me.getSceneY()-s.getInsets().getTop()-MyShape.getDefaultHeight()/2-30);
+                if(MyShape.getDefaultShapeType()==MyShape.LINE){
+                    
+                    // TODO: fix this so the line starts where the mouse is
+                    
+                    s.shape = linePressed(me);
+                } else if(MyShape.getDefaultShapeType()==MyShape.TEXT_BOX){
+                    Bounds boundsInParent = s.getBoundsInParent();
+                    double width = boundsInParent.getWidth();
+                    double height = boundsInParent.getHeight();
+                    s.relocate(me.getX()-s.getInsets().getLeft()-width/2,
+                       me.getY()-s.getInsets().getTop()-height/2);           
+                }
+                else {
+                    s.relocate(me.getX()-s.getInsets().getLeft()-MyShape.getDefaultWidth()/2, 
+                    me.getY()-s.getInsets().getTop()-MyShape.getDefaultHeight()/2); 
+                }
                 s.setOnMousePressed(e->shapePressed(e,s));
                 s.setOnMouseReleased(e->shapeReleased(e,s));
                 s.setOnMouseDragged(e->shapeDragged(e,s));
                 this.getChildren().add(s);
             }
+        
             // deselect everything 
             contextmenu.hide();
             if (!(this.getSelectedShape() == null)){
@@ -586,6 +700,7 @@ public class Drawing extends Application {
         triangle.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.TRIANGLE));
         line.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.LINE));
         textbox.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.TEXT_BOX));
+        scribble.setOnAction(e -> MyShape.setDefaultShapeType(MyShape.SQUIGGLE));
         
         choosepicture.setOnAction(e -> {
             FileChooser picChooser = new FileChooser();
@@ -605,7 +720,7 @@ public class Drawing extends Application {
         
         // disable things that either don't work or I don't want to work
         print.setDisable(false);
-        scribble.setDisable(true);
+        //scribble.setDisable(true);
         pixelspray.setDisable(true);
         choosepicture.setDisable(false);
         
@@ -734,7 +849,7 @@ public class Drawing extends Application {
         sidebar2.setStyle("-fx-background-color: darkgray;");
         sidebar2.setSpacing(10);
         Button btnline = new Button("Line");
-        Button btnsquiggle = new Button("Squiggle");
+        Button btnsquiggle = new Button("Scribble");
         Button btntext = new Button("Text Box");
         sidebar2.getChildren().addAll(btnline, btnsquiggle, btntext);
         
@@ -743,7 +858,7 @@ public class Drawing extends Application {
         btntext.setOnAction(b -> MyShape.setDefaultShapeType(MyShape.TEXT_BOX));
         btntext.setTooltip(new Tooltip("Sets default shape to Text"));
         btnsquiggle.setOnAction(c -> MyShape.setDefaultShapeType(MyShape.SQUIGGLE));
-        btnsquiggle.setTooltip(new Tooltip("Sets default shape to Squiggle"));
+        btnsquiggle.setTooltip(new Tooltip("Sets default shape to Scribble"));
         
         rect2.setOnMouseEntered(d -> {
             root.setRight(sidebar2);

@@ -34,13 +34,13 @@ Mar 01          2.0            -designed/implemented help screen
 
 Mar 02          1.5            -changed shapeType properties
                                -added default shape change to selected shape
-<<<<<<< HEAD
                                -above may not be a good idea; check and see
 
 
 Mar 11          2.0            -started line size changing
                                -added tooltips
                                -fixed z ordering     
-=======
                                -above may not be a good idea; check and see     
->>>>>>> 57eb68bda8af19b459cc44a9f3027bf9f6b17cfb
+
+Mar 21          2.0            -merged David's text code
+                               -started scribbles
