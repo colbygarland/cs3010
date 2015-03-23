@@ -257,6 +257,9 @@ class MyShape extends StackPane implements Drawable{
     public static int getDefaultShapeType(){
         return defaultShapeType;
     }
+    public static double getDefaultStrokeWidth(){
+        return defaultStrokeWidth;
+    }
     public void setFillColor(Color value){
         if(shape instanceof Shape){
             ((Shape)shape).setFill(value);

@@ -3,7 +3,11 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/home/francoc/NetBeansProjects/drawing/src/drawing/Drawing.java</file>
+            <file>file:/home/colbyg/NetBeansProjects/drawing/src/drawing/DrawPane.java</file>
+            <file>file:/home/colbyg/NetBeansProjects/drawing/src/drawing/JpgFilter.java</file>
+            <file>file:/home/colbyg/NetBeansProjects/drawing/src/drawing/Drawing.java</file>
+            <file>file:/home/colbyg/NetBeansProjects/drawing/src/drawing/Scribble.java</file>
+            <file>file:/home/colbyg/NetBeansProjects/drawing/src/drawing/MyShape.java</file>
         </group>
     </open-files>
 </project-private>

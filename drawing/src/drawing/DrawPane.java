@@ -5,6 +5,8 @@ package drawing;
 
 import java.io.File;
 import java.util.Stack;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.control.ContextMenu;
@@ -14,7 +16,9 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Line;
+import javafx.scene.shape.Polyline;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
@@ -26,6 +30,7 @@ class DrawPane extends Pane{
     private MyShape temp = null;
     private ContextMenu contextmenu = new ContextMenu();
     private boolean contextFlag = true;
+    private boolean contextFlag2 = true;
     private String capturedText = "";
     private Stack stack;
 
@@ -35,6 +40,7 @@ class DrawPane extends Pane{
         this.setPrefSize(800, 600);
         this.setOnMousePressed(e->mousePressed(e));
         this.setOnMouseReleased(e->mouseReleased(e));
+        this.setOnMouseDragged(e -> mouseDragged(e));
     }
     public MyShape getSelectedShape(){
         return selectedShape;
@@ -67,11 +73,23 @@ class DrawPane extends Pane{
         Node n = l;
         return n;
     }
+    private void editText(MouseEvent me){
+        
+    }
+    private void mouseDragged(MouseEvent e){
+        Polyline scribble = new Polyline();
+        scribble.getPoints().add(e.getX());
+        scribble.getPoints().add(e.getY());
+        this.getChildren().add(scribble);
+    }
     private void mousePressed(MouseEvent me){
        
         if (me.getButton() == MouseButton.SECONDARY) contextMenu(me);
         else {
-            if (this.selectedShape == null){
+            if (contextmenu.isShowing()){
+                contextmenu.hide();
+            }
+            else if (this.selectedShape == null){
                 MyShape s = new MyShape();
                 if(MyShape.getDefaultShapeType()==MyShape.LINE){
                     
@@ -79,11 +97,25 @@ class DrawPane extends Pane{
                     
                     s.shape = linePressed(me);
                 } else if(MyShape.getDefaultShapeType()==MyShape.TEXT_BOX){
-                    Bounds boundsInParent = s.getBoundsInParent();
-                    double width = boundsInParent.getWidth();
-                    double height = boundsInParent.getHeight();
-                    s.relocate(me.getX()-s.getInsets().getLeft()-width/2,
-                       me.getY()-s.getInsets().getTop()-height/2);           
+                    if (me.getButton() == MouseButton.SECONDARY){
+                        // somehow edit text in here
+                        MyShape.setDefaultSelectedPaint(Color.YELLOW);
+                        s.setSelected(true);
+                    } else {
+                        Bounds boundsInParent = s.getBoundsInParent();
+                        double width = boundsInParent.getWidth();
+                        double height = boundsInParent.getHeight();
+                        s.relocate(me.getX()-s.getInsets().getLeft()-width/2,
+                           me.getY()-s.getInsets().getTop()-height/2);   
+                    }
+                } else if(MyShape.getDefaultShapeType() == MyShape.SQUIGGLE){
+                    Polyline scribble = new Polyline();
+                    scribble.getPoints().add(me.getX());
+                    scribble.getPoints().add(me.getY());
+                    scribble.setStroke(MyShape.defaultStrokePaint);
+                    scribble.setStrokeWidth(MyShape.getDefaultStrokeWidth());
+                    this.getChildren().add(scribble);
+                    System.err.println("test scribble");
                 }
                 else {
                     s.relocate(me.getX()-s.getInsets().getLeft()-MyShape.getDefaultWidth()/2, 
@@ -96,7 +128,6 @@ class DrawPane extends Pane{
             }
         
             // deselect everything 
-            contextmenu.hide();
             if (!(this.getSelectedShape() == null)){
                 this.getSelectedShape().setSelected(false);
                 selectedShape = null;
@@ -106,6 +137,15 @@ class DrawPane extends Pane{
     
     private void contextMenu(MouseEvent me){
         if (!contextmenu.isShowing()){
+            MenuItem editText = null;
+            if (MyShape.getDefaultShapeType() == MyShape.TEXT_BOX && contextFlag2){
+                    editText = new MenuItem("Edit Text");
+                    editText.setOnAction(e -> {
+                        
+                    });
+                    contextmenu.getItems().add(editText);
+                    contextFlag2 = false;
+            }
             if (contextFlag){
                 MenuItem copy = new MenuItem("Cut");
                 MenuItem paste = new MenuItem("Paste");
@@ -120,6 +160,7 @@ class DrawPane extends Pane{
                 contextmenu.getItems().addAll(copy,paste,undo,redo,delete);
                 contextFlag = false;
             }
+            if (!(MyShape.getDefaultShapeType() == MyShape.TEXT_BOX)) System.err.println(contextmenu.getItems().remove(editText));
             contextmenu.show(this, me.getScreenX(), me.getScreenY());
         }
     }
