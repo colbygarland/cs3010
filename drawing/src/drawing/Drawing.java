@@ -19,6 +19,7 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ColorPicker;
+import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -148,12 +149,8 @@ public class Drawing extends Application {
             ImageView imgview = new ImageView();
         });
         print.setOnAction(e -> this.print(pane));
-        save.setOnAction(e -> pane.save());
-        open.setOnAction(e -> pane.open());
         close.setOnAction(e -> Platform.exit());
         help.setOnAction(e -> help());
-        undo.setOnAction(e -> pane.undo());
-        redo.setOnAction(e -> pane.redo());
         
         // disable things that either don't work or I don't want to work
         print.setDisable(false);
@@ -209,6 +206,7 @@ public class Drawing extends Application {
         Button btntriangle = new Button("Triangle");
         Button btnoval = new Button("Oval");
         Button btnzordering = new Button(" Send  Shape  Back ");
+        Button btnzorder2 = new Button(" Bring Shape Forward");
         
         Text slidertext = new Text("Adjust Outline Width");
         Slider strokeslider = new Slider(0,20,3);
@@ -253,9 +251,15 @@ public class Drawing extends Application {
             }
         });
         btnzordering.setTooltip(new Tooltip("Sends the selected object to the back"));
+        btnzorder2.setTooltip(new Tooltip("Brings the selected object to the front"));
+        btnzorder2.setOnAction(e -> {
+            if (pane.getSelectedShape() != null){
+                pane.setZOrderingFront(pane.getSelectedShape());
+            }
+        });
 
   sidebar.getChildren().addAll(btncircle, btnsquare, btnrounded, btntriangle
-        , btnoval, slidertext, strokeslider, slidertext2, sliderfield, btnzordering);
+        , btnoval, slidertext, strokeslider, slidertext2, sliderfield, btnzordering, btnzorder2);
         
         Rectangle rect = new Rectangle(50,25);
         rect.setRotate(90);
@@ -288,7 +292,18 @@ public class Drawing extends Application {
         Button btnline = new Button("Line");
         Button btnsquiggle = new Button("Scribble");
         Button btntext = new Button("Text Box");
-        sidebar2.getChildren().addAll(btnline, btnsquiggle, btntext);
+        Label lbl = new Label("Change Text:");
+        TextField txtfield = new TextField();
+        
+        //Label fontlabel = new Label("Change Font:");
+
+        sidebar2.getChildren().addAll(btnline, btnsquiggle, btntext, lbl,txtfield
+                );
+       
+        txtfield.setOnAction(e -> {
+            pane.changeText(txtfield.getText());
+            txtfield.clear();
+        });
         
         btnline.setOnAction(a -> MyShape.setDefaultShapeType(MyShape.LINE));
         btnline.setTooltip(new Tooltip("Sets default shape to Line"));
@@ -296,6 +311,7 @@ public class Drawing extends Application {
         btntext.setTooltip(new Tooltip("Sets default shape to Text"));
         btnsquiggle.setOnAction(c -> MyShape.setDefaultShapeType(MyShape.SQUIGGLE));
         btnsquiggle.setTooltip(new Tooltip("Sets default shape to Scribble"));
+        txtfield.setTooltip(new Tooltip("Type in text to change the text"));
         
         rect2.setOnMouseEntered(d -> {
             root.setRight(sidebar2);

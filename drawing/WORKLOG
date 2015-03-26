@@ -48,3 +48,7 @@ Mar 21          2.0            -merged David's text code
 
 Mar 23          1.5            -working on scribbles
                                -working on text/context menu stuff
+
+Mar 26          2.0            -fixed copy/paste
+                               -can now edit text
+                               -added bring shape forward button
