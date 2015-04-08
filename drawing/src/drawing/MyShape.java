@@ -54,7 +54,7 @@ class MyShape extends StackPane implements Drawable{
     protected Node shape;
     private static Paint defaultFillPaint=Color.RED;
     protected static Paint defaultStrokePaint=Color.BLACK;
-    private static Paint defaultSelectedPaint=Color.BROWN;
+    private static Paint defaultSelectedPaint=Color.LIGHTBLUE;
     private static double defaultStrokeWidth=3;
     private static int defaultShapeType = CIRCLE;
     private static double defaultWidth = 50;
@@ -62,6 +62,8 @@ class MyShape extends StackPane implements Drawable{
     protected int shapeType = 0;
     private static String defaultFontName = "Times Roman";
     private static double defaultFontSize = 15;
+    private static double currentFontSize = 0;
+    private static String defaultText = "Text";
 
     
     private Node makeShape(){
@@ -94,7 +96,7 @@ class MyShape extends StackPane implements Drawable{
                        s = l;
                        shapeType = LINE;
                        break;
-            case TEXT_BOX: Text t = new Text("Text");
+            case TEXT_BOX: Text t = new Text(defaultText);
                            t.setStroke(defaultFillPaint);
                            s = t;
                            shapeType = TEXT_BOX;
@@ -127,15 +129,10 @@ class MyShape extends StackPane implements Drawable{
         this.setMinWidth(10);
         this.setMinHeight(10);
     }
-    
-    @Override
-    protected Object clone() throws CloneNotSupportedException {
-        return super.clone();
-    }
-    
+
     public MyShape(MyShape other){
         super();
-        this.shape = other.shape;
+        this.shape = new MyShape();
         this.selected = new SimpleBooleanProperty(false);
         this.selected.set(false);
         this.shapeType = other.shapeType;
@@ -181,6 +178,7 @@ class MyShape extends StackPane implements Drawable{
             double hr = newHeight/h;
             double scale = Math.min(wr, hr);
             double newSize = Math.max(t.getFont().getSize()*scale,2);
+            currentFontSize = newSize;
             String name = t.getFont().getName();
             t.setFont(new Font(name,newSize));   
         } 
@@ -247,6 +245,12 @@ class MyShape extends StackPane implements Drawable{
     }
     public static void setDefaultHeight(double value){
         defaultHeight = value;
+    }
+    public static void setDefaultText(String text){
+        defaultText = text;
+    }
+    public static double getCurrentFontSize(){
+        return currentFontSize;
     }
     public static double getDefaultWidth(){
         return defaultWidth;
