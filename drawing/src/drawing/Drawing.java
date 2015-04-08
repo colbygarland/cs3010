@@ -301,6 +301,9 @@ public class Drawing extends Application {
         Button font3 = new Button("Tahoma");
         sidebar2.getChildren().addAll(btnline, btnsquiggle, btntext, lbl,txtfield,
                 fontlabel, font1, font2, font3);
+
+        sidebar2.getChildren().addAll(btnline, btnsquiggle, btntext, lbl,txtfield
+                );
        
         txtfield.setOnAction(e -> {
             pane.changeText(txtfield.getText());
@@ -314,9 +317,7 @@ public class Drawing extends Application {
         btnsquiggle.setOnAction(c -> MyShape.setDefaultShapeType(MyShape.SQUIGGLE));
         btnsquiggle.setTooltip(new Tooltip("Sets default shape to Scribble"));
         txtfield.setTooltip(new Tooltip("Type in text to change the text"));
-        
-        
-        
+     
         font1.setOnAction(e -> {
             if (pane.getSelectedShape() != null){
                 if (pane.getSelectedShape().shapeType == MyShape.TEXT_BOX){

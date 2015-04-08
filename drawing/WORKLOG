@@ -52,6 +52,9 @@ Mar 23          1.5            -working on scribbles
 Mar 26          2.0            -fixed copy/paste
                                -can now edit text
                                -added bring shape forward button
+<<<<<<< HEAD
 
 Apr 08          2.0            -change font now works 
 
+=======
+>>>>>>> 88bac985fd7a5b0afc72b3441f713d1f4862eccd

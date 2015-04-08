@@ -11,7 +11,11 @@
   </resources>
   <resources>
     <j2se version="1.6+" href="http://java.sun.com/products/autodl/j2se"/>
+<<<<<<< HEAD
     <jar href="drawing.jar" size="23482" download="eager" />
+=======
+    <jar href="drawing.jar" size="23084" download="eager" />
+>>>>>>> 88bac985fd7a5b0afc72b3441f713d1f4862eccd
   </resources>
   <applet-desc  width="800" height="600" main-class="com.javafx.main.NoJavaFXFallback"  name="drawing" >
     <param name="requiredFXVersion" value="8.0+"/>

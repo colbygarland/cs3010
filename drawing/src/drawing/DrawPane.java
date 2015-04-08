@@ -232,12 +232,12 @@ class DrawPane extends Pane{
         
         this.getChildren().remove(this.selectedShape);
         this.getChildren().add(temp);
+
         
         Bounds boundsInParent = temp.getBoundsInParent();
         double width = boundsInParent.getWidth();
         double height = boundsInParent.getHeight();
         temp.relocate(x-temp.getInsets().getLeft()-width/2,
-            y-temp.getInsets().getTop()-height/2);   
-        
+            y-temp.getInsets().getTop()-height/2);    
     }
 }
