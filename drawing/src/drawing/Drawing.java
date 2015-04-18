@@ -298,13 +298,10 @@ public class Drawing extends Application {
         Label fontlabel = new Label("Change Font:");
         Button font1 = new Button("Serif");
         Button font2 = new Button("Sans-Serif");
-        Button font3 = new Button("Tahoma");
+        Button font3 = new Button("Purisa");
         sidebar2.getChildren().addAll(btnline, btnsquiggle, btntext, lbl,txtfield,
                 fontlabel, font1, font2, font3);
-
-        sidebar2.getChildren().addAll(btnline, btnsquiggle, btntext, lbl,txtfield
-                );
-       
+        
         txtfield.setOnAction(e -> {
             pane.changeText(txtfield.getText());
             txtfield.clear();
@@ -336,7 +333,7 @@ public class Drawing extends Application {
         font3.setOnAction(e -> {
             if (pane.getSelectedShape() != null){
                 if (pane.getSelectedShape().shapeType == MyShape.TEXT_BOX){
-                    pane.getSelectedShape().setFont(Font.font("Tahoma", pane.getSelectedShape().getCurrentFontSize()));
+                    pane.getSelectedShape().setFont(new Font("Purisa", pane.getSelectedShape().getCurrentFontSize()));
                 }
             }
         });
