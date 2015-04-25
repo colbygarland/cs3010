@@ -40,7 +40,7 @@ interface Drawable {
     String getText();
 }
 
-class MyShape extends StackPane implements Drawable{
+class MyShape extends StackPane implements Drawable, java.io.Serializable{
     public static final int CIRCLE = 0;
     public static final int RECTANGLE = 1;
     public static final int ROUNDED_RECTANGLE = 2;
@@ -164,6 +164,8 @@ class MyShape extends StackPane implements Drawable{
             e.setRadiusX(width/2.0 - this.getInsets().getLeft() - e.getStrokeWidth()/2.0);
             e.setRadiusY(height/2.0 - this.getInsets().getTop() - this.getInsets().getBottom() - e.getStrokeWidth());
         } else if(shape instanceof Polygon){
+        // TODO: probably use a file chooser here
+       // File file = new File("chart.png");
             Polygon s = (Polygon)shape;
             s.setScaleX(width/10.0 - this.getInsets().getLeft() - this.getInsets().getRight() - s.getStrokeWidth()/2.0);
             s.setScaleY(height/10.0 - this.getInsets().getTop() - this.getInsets().getBottom() - s.getStrokeWidth()/2.0);
